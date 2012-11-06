@@ -6,6 +6,12 @@ module Ransack
       def attribute_select(options = {}, html_options = {})
         raise ArgumentError, "attribute_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
         options[:include_blank] = true unless options.has_key?(:include_blank)
+
+        # Set default associations set on model with 'has_ransackable_associations'
+        if options[:associations].nil?
+          options[:associations] = object.context.klass.ransackable_associations
+        end
+
         bases = [''] + association_array(options[:associations])
         if bases.size > 1
           @template.select(
@@ -25,6 +31,20 @@ module Ransack
             objectify_options(options), @default_options.merge(html_options)
           )
         end
+      end
+
+      def predicate_select(options = {}, html_options = {})
+        options = Ransack.options[:default_predicates] || {} if options.blank?
+
+        options[:compounds] = true if options[:compounds].nil?
+        keys = predicate_keys(options)
+        # If condition is newly built with build_condition(),
+        # then replace the default predicate with the first in the ordered list
+        @object.predicate_name = keys.first if @object.default?
+        @template.collection_select(
+          @object_name, :p, keys.map {|k| [k, Translate.predicate(k)]}, :first, :last,
+          objectify_options(options), @default_options.merge(html_options)
+        )
       end
 
       def attribute_collection_for_bases(bases)
