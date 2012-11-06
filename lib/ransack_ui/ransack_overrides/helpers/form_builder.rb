@@ -49,15 +49,23 @@ module Ransack
 
       def attribute_collection_for_bases(bases)
         bases.map do |base|
+          klass = object.context.traverse(base)
+          foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
+                           map_to({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
           begin
           [
             Translate.association(base, :context => object.context),
             object.context.searchable_attributes(base).map do |c, type|
               attribute = attr_from_base_and_column(base, c)
+              html_options = {:'data-type' => type}
+              if foreign_klass = foreign_keys[c.to_sym]
+                # Add controller name (via tableize) if field is a foreign key
+                html_options[:'data-controller'] = foreign_klass.tableize
+              end
               [
                 Translate.attribute(attribute, :context => object.context),
                 attribute,
-                {:'data-type' => type}
+                html_options
               ]
             end
           ]
