@@ -26,37 +26,51 @@
 
     predicate_changed: (e) ->
       target   = $(e.currentTarget)
-      value_el = $('input#' + target.attr('id').slice(0, -1) + "v_0_value")
+      query_input = $('input#' + target.attr('id').slice(0, -1) + "v_0_value")
       if target.val() in ["true", "false", "blank", "present", "null", "not_null"]
-        value_el.val("true")
-        value_el.hide()
+        query_input.val("true")
+        query_input.hide()
       else
-        unless value_el.is(":visible")
-          value_el.val("")
-          value_el.show()
+        unless query_input.is(":visible")
+          query_input.val("")
+          query_input.show()
 
     attribute_changed: (e) ->
       target = $(e.currentTarget)
-      predicate_select = this.element.find('select#' + target.attr('id').slice(0, -8) + "p")
-      previous_val = predicate_select.val()
-      type = target.find('option:selected').data('type')
+      selected = target.find('option:selected')
 
-      # Build array of supported predicates
-      available = predicate_select.data['predicates']
+      base_id = target.attr('id').slice(0, -8)
+      predicate_select  = this.element.find('select#' + base_id + 'p')
+      predicate_select2 = this.element.find('#s2id_' + base_id + 'p')
+      query_input = $('input#' + base_id + "v_0_value")
 
-      predicates = Ransack.type_predicates[type] || []
-      predicates = $.map predicates, (p) -> [p, Ransack.predicates[p]]
+      if selected.data('controller')
+        predicate_select2.hide()
+        query_input.hide()
+      else
+        predicate_select2.show()
+        query_input.show()
 
-      # Remove all predicates, and add any supported predicates
-      predicate_select.find('option').each (i, o) -> $(o).remove()
+        previous_val = predicate_select.val()
 
-      $.each available, (i, p) ->
-        [val, label] = [p[0], p[1]]
-        if val in predicates
-          predicate_select.append $('<option value='+val+'>'+label+'</option>')
+        # Build array of supported predicates
+        available = predicate_select.data['predicates']
+        predicates = Ransack.type_predicates[selected.data('type')] || []
+        predicates = $.map predicates, (p) -> [p, Ransack.predicates[p]]
 
-      # Select first predicate if current selection is invalid
-      predicate_select.select2('val', previous_val)
+        # Remove all predicates, and add any supported predicates
+        predicate_select.find('option').each (i, o) -> $(o).remove()
+
+        $.each available, (i, p) ->
+          [val, label] = [p[0], p[1]]
+          if val in predicates
+            predicate_select.append $('<option value='+val+'>'+label+'</option>')
+
+        # Select first predicate if current selection is invalid
+        predicate_select.select2('val', previous_val)
+
+        # Run predicate_changed callback
+        predicate_select.change()
 
       return true
 
