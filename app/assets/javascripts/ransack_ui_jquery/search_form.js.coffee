@@ -44,14 +44,39 @@
       predicate_select2 = this.element.find('#s2id_' + base_id + 'p')
       query_input = $('input#' + base_id + "v_0_value")
 
-      if selected.data('controller')
+      if selected.data('ajax-url') and Select2?
+        controller = selected.data('controller')
+
+        # Hide predicate Select2
         predicate_select2.hide()
-        query_input.hide()
+        # Clear predicates, and set 'eq' predicate
+        predicate_select.find('option').each (i, o) -> $(o).remove()
+        predicate_select.append $('<option selected="selected" value="eq">is</option>')
+
+        # Set up Select2 for query input
+        query_input.val('')
+        query_input.select2
+          placeholder: "Search #{selected.data('ajax-entity')}"
+          minimumInputLength: 1
+          ajax:
+            url: selected.data('ajax-url')
+            dataType: 'json'
+            type: selected.data('ajax-type')
+            data: (query, page) ->
+              obj = {}
+              obj[selected.data('ajax-key')] = query
+              obj
+            results: (data, page) ->
+              {results: $.map(data, (text, id) -> {id: id, text: text}) }
       else
         predicate_select2.show()
-        query_input.show()
-
-        previous_val = predicate_select.val()
+        # If Select2 is on query input, remove and set defaults
+        if query_select2 = this.element.find('#s2id_' + base_id + 'v_0_value')
+          query_input.select2('destroy')
+          query_input.val('')
+          previous_val = ''
+        else
+          previous_val = predicate_select.val()
 
         # Build array of supported predicates
         available = predicate_select.data['predicates']
@@ -123,5 +148,10 @@
           placeholder: "Select a Field"
           allowClear: true
           formatSelection: (object, container) ->
-            $(object.element).parent().attr('label') + ': ' + object.text
+            # Return model name if column is AJAX auto-completed association
+            if $(object.element).data('ajax-url')
+              object.text
+            # Return 'Model: field' if regular column
+            else
+              $(object.element).parent().attr('label') + ': ' + object.text
 ) jQuery

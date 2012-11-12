@@ -7,5 +7,9 @@ module Ransack
     def default_predicates=(options)
       self.options[:default_predicates] = options
     end
+
+    def ajax_options=(options)
+      self.options[:ajax_options] = options
+    end
   end
 end
