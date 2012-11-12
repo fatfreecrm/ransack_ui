@@ -58,6 +58,7 @@
         query_input.select2
           placeholder: "Search #{selected.data('ajax-entity')}"
           minimumInputLength: 1
+          allowClear: true
           ajax:
             url: selected.data('ajax-url')
             dataType: 'json'
@@ -148,10 +149,14 @@
           placeholder: "Select a Field"
           allowClear: true
           formatSelection: (object, container) ->
-            # Return model name if column is AJAX auto-completed association
-            if $(object.element).data('ajax-url')
+            # Return 'Model: field' if column is not on base model
+            if $(object.element).data('base')
               object.text
-            # Return 'Model: field' if regular column
             else
-              $(object.element).parent().attr('label') + ': ' + object.text
+              group_label = $(object.element).parent().attr('label')
+              # Avoid labels like 'Contact: Contact'
+              if group_label == object.text
+                object.text
+              else
+                $(object.element).parent().attr('label') + ': ' + object.text
 ) jQuery
