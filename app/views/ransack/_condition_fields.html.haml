@@ -10,4 +10,4 @@
 
     = f.value_fields do |v|
       %span.fields.value{ 'data-object-name' => f.object_name }
-      = v.text_field :value, :style => "width: 200px;"
+      = v.text_field :value, :style => "width: 200px;", :class => "ransack_query"

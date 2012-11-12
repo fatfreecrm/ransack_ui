@@ -8,6 +8,7 @@
       el.on 'click', '.remove_fields',    $.proxy(this.remove_fields, this)
       el.on 'change', 'select.ransack_predicate', $.proxy(this.predicate_changed, this)
       el.on 'change', 'select.ransack_attribute', $.proxy(this.attribute_changed, this)
+      el.on 'click focus', 'input.ransack_query', $.proxy(this.query_focus, this)
 
       # Set up Select2 on select lists in .filters
       this.init_select2(this.element.find('.filters'))
@@ -26,7 +27,8 @@
 
     predicate_changed: (e) ->
       target   = $(e.currentTarget)
-      query_input = $('input#' + target.attr('id').slice(0, -1) + "v_0_value")
+      base_id = target.attr('id').slice(0, -1)
+      query_input = $('input#' + base_id + "v_0_value")
       if target.val() in ["true", "false", "blank", "present", "null", "not_null"]
         query_input.val("true")
         query_input.hide()
@@ -38,11 +40,15 @@
     attribute_changed: (e) ->
       target = $(e.currentTarget)
       selected = target.find('option:selected')
+      column_type = selected.data('type')
 
       base_id = target.attr('id').slice(0, -8)
       predicate_select  = this.element.find('select#' + base_id + 'p')
       predicate_select2 = this.element.find('#s2id_' + base_id + 'p')
       query_input = $('input#' + base_id + "v_0_value")
+
+      # Clear any datepicker from query input
+      query_input.datepicker('destroy')
 
       if selected.data('ajax-url') and Select2?
         controller = selected.data('controller')
@@ -81,15 +87,17 @@
 
         # Build array of supported predicates
         available = predicate_select.data['predicates']
-        predicates = Ransack.type_predicates[selected.data('type')] || []
+        predicates = Ransack.type_predicates[column_type] || []
         predicates = $.map predicates, (p) -> [p, Ransack.predicates[p]]
 
         # Remove all predicates, and add any supported predicates
         predicate_select.find('option').each (i, o) -> $(o).remove()
 
-        $.each available, (i, p) ->
+        $.each available, (i, p) =>
           [val, label] = [p[0], p[1]]
           if val in predicates
+            # Get alternative predicate label depending on column type
+            label = this.alt_predicate_label_or_default(val, column_type, label)
             predicate_select.append $('<option value='+val+'>'+label+'</option>')
 
         # Select first predicate if current selection is invalid
@@ -99,6 +107,51 @@
         predicate_select.change()
 
       return true
+
+    query_focus: (e) ->
+      if $.ui?.timepicker?
+        target = $(e.currentTarget)
+        base_id = target.attr('id').slice(0, -9)
+        query_input = $('input#' + base_id + "v_0_value")
+
+        # Only set up new datepicker if not already initialized
+        if query_input.not('.hasDatePicker')
+          selected_attr = this.element.find('select#' + base_id + 'a_0_name option:selected')
+
+          datepicker_options =
+            changeMonth: true
+            constrainInput: false
+            dateFormat: 'yy-mm-dd'
+            # Always prefer custom input text over selected date
+            onClose: (date) -> $(this).val(date)
+
+          switch selected_attr.data('type')
+            when "date"
+              query_input.datepicker(datepicker_options)
+            when "datetime"
+              query_input.datetimepicker(datepicker_options)
+            when "time"
+              query_input.datetimepicker $.extend(datepicker_options, {timeOnly: true})
+
+    # Attempts to find a predicate translation for the specific column type,
+    # or returns the default label.
+    # For example, 'lt' on an integer column will be translated to 'is less than',
+    # while a date column will have it translated as 'is before'.
+    # This is mainly to avoid confusion when building conditions using Chronic strings.
+    # 'created_at is less than 2 weeks ago' is misleading, and
+    # 'created_at is before 2 weeks ago' is much easier to understand.
+    alt_predicate_label_or_default: (p, type, default_label) ->
+      return default_label unless Ransack?.alt_predicates_i18n?
+
+      alt_labels = {}
+      switch type
+        when "date", "datetime", "time"
+          alt_labels = Ransack.alt_predicates_i18n["date"] || {}
+        else
+          alt_labels = Ransack.alt_predicates_i18n[type] || {}
+
+      alt_labels[p] || default_label
+
 
     form_submit: (e) ->
       $("#loading").show()
@@ -149,8 +202,8 @@
           placeholder: "Select a Field"
           allowClear: true
           formatSelection: (object, container) ->
-            # Return 'Model: field' if column is not on base model
-            if $(object.element).data('base')
+            # Return 'Model: field' unless column is on root model
+            if $(object.element).data('root-model')
               object.text
             else
               group_label = $(object.element).parent().attr('label')

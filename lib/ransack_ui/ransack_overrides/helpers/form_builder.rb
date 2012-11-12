@@ -81,7 +81,7 @@ module Ransack
               # Add column type as data attribute
               html_options = {:'data-type' => type}
               # Set 'base' attribute if attribute is on base model
-              html_options[:'data-base'] = true if base.blank?
+              html_options[:'data-root-model'] = true if base.blank?
 
               if foreign_klass
                 # If field is a foreign key, set up 'data-ajax-*' attributes for auto-complete
