@@ -13,7 +13,7 @@ module RansackUI
     end
 
     def link_to_remove_fields(name, f)
-      link_to image_tag('delete.png', :size => '16x16', :alt => name), nil, :class => "remove_fields"
+      link_to image_tag('ransack_ui/delete.png', :size => '16x16', :alt => name), nil, :class => "remove_fields"
     end
   end
 end

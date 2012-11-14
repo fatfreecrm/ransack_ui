@@ -8,7 +8,6 @@
       el.on 'click', '.remove_fields',    $.proxy(this.remove_fields, this)
       el.on 'change', 'select.ransack_predicate', $.proxy(this.predicate_changed, this)
       el.on 'change', 'select.ransack_attribute', $.proxy(this.attribute_changed, this)
-      el.on 'click focus', 'input.ransack_query', $.proxy(this.query_focus, this)
 
       # Set up Select2 on select lists in .filters
       this.init_select2(this.element.find('.filters'))
@@ -47,8 +46,8 @@
       predicate_select2 = this.element.find('#s2id_' + base_id + 'p')
       query_input = $('input#' + base_id + "v_0_value")
 
-      # Clear any datepicker from query input
-      query_input.datepicker('destroy')
+      # Initialize datepicker if column is date/datetime/time
+      $.proxy(this.init_datetimepicker, this)(base_id)
 
       if selected.data('ajax-url') and Select2?
         controller = selected.data('controller')
@@ -107,31 +106,6 @@
         predicate_select.change()
 
       return true
-
-    query_focus: (e) ->
-      if $.ui?.timepicker?
-        target = $(e.currentTarget)
-        base_id = target.attr('id').slice(0, -9)
-        query_input = $('input#' + base_id + "v_0_value")
-
-        # Only set up new datepicker if not already initialized
-        if query_input.not('.hasDatePicker')
-          selected_attr = this.element.find('select#' + base_id + 'a_0_name option:selected')
-
-          datepicker_options =
-            changeMonth: true
-            constrainInput: false
-            dateFormat: 'yy-mm-dd'
-            # Always prefer custom input text over selected date
-            onClose: (date) -> $(this).val(date)
-
-          switch selected_attr.data('type')
-            when "date"
-              query_input.datepicker(datepicker_options)
-            when "datetime"
-              query_input.datetimepicker(datepicker_options)
-            when "time"
-              query_input.datetimepicker $.extend(datepicker_options, {timeOnly: true})
 
     # Attempts to find a predicate translation for the specific column type,
     # or returns the default label.
@@ -212,4 +186,33 @@
                 object.text
               else
                 $(object.element).parent().attr('label') + ': ' + object.text
+
+
+
+    init_datetimepicker: (base_id) ->
+      if $.ui?.timepicker?
+        query_input = this.element.find('input#' + base_id + "v_0_value")
+        selected_attr = this.element.find('select#' + base_id + 'a_0_name option:selected')
+
+        # Clear any datepicker from query input first
+        query_input.datepicker('destroy')
+
+        datepicker_options =
+          changeMonth: true
+          constrainInput: false
+          dateFormat: 'yy-mm-dd'
+          buttonImage: "<%= asset_path('ransack_ui/calendar.png') %>"
+          buttonImageOnly: true
+          showOn: 'button'
+          # Always prefer custom input text over selected date
+          onClose: (date) -> $(this).val(date)
+
+        # Show datepicker button for dates
+        switch selected_attr.data('type')
+          when "date"
+            query_input.datepicker(datepicker_options)
+          when "datetime"
+            query_input.datetimepicker(datepicker_options)
+          when "time"
+            query_input.datetimepicker $.extend(datepicker_options, {timeOnly: true})
 ) jQuery
