@@ -1,7 +1,7 @@
 require "ransack_ui/version"
 require "ransack_ui/rails/engine"
 require "core_ext/enumerable"
-require "chronic"
+require "ransack_chronic"
 
 # Require ransack overrides
 require 'ransack_ui/adapters/active_record'
