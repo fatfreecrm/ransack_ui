@@ -195,7 +195,7 @@
         container.find('select.ransack_predicate').select2
           width: '130px'
           formatNoMatches: (term) ->
-            "No predicates found"
+            "Select a field first"
 
         container.find('select.ransack_attribute').select2
           width: '220px'
