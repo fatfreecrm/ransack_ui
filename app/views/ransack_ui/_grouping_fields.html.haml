@@ -6,7 +6,7 @@
   .filters
     - f.object.build_condition unless f.object.conditions.any?
     = f.condition_fields do |c|
-      = render 'ransack/condition_fields', :f => c
+      = render 'ransack_ui/condition_fields', :f => c
 
     %p
       = link_to_add_fields t(:advanced_search_add_condition), f, :condition

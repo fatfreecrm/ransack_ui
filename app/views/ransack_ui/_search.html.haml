@@ -1,11 +1,11 @@
-= search_form_for search, :url => url_for(:action => :index), :html => {:method => :get, :class => "advanced_search"}, :remote => true do |f|
+= search_form_for @ransack_search, :url => url_for(:action => :index), :html => {:method => :get, :class => "ransack_search"}, :remote => true do |f|
 
   :javascript
     if (window.Ransack == null) { window.Ransack = {}; }
     Ransack.alt_predicates_i18n = #{I18n.translate(:"ransack.predicates.alt", :default => {}).to_json}
 
   = f.grouping_fields do |g|
-    = render 'ransack/grouping_fields', :f => g
+    = render 'ransack_ui/grouping_fields', :f => g
 
   %p
     = link_to_add_fields t(:advanced_search_add_group), f, :grouping
