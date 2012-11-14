@@ -31,10 +31,12 @@
       if target.val() in ["true", "false", "blank", "present", "null", "not_null"]
         query_input.val("true")
         query_input.hide()
+        query_input.parent().find('.ui-datepicker-trigger').hide()
       else
         unless query_input.is(":visible")
           query_input.val("")
           query_input.show()
+          query_input.parent().find('.ui-datepicker-trigger').show()
 
     attribute_changed: (e) ->
       target = $(e.currentTarget)
