@@ -81,17 +81,19 @@
         predicate_select.find('option').each (i, o) -> $(o).remove()
 
         $.each available, (i, p) =>
-          [val, label] = [p[0], p[1]]
+          [predicate, label] = [p[0], p[1]]
 
           # Also allow compound predicates, unless column
           # is a date type. (No support for any/all on dates yet.)
-          unless column_type?.match(/date|time/)
-            val = val.replace(/_(any|all)$/, '')
+          if !column_type?.match(/date|time/)
+            p_key = predicate.replace(/_(any|all)$/, '')
+          else
+            p_key = predicate
 
-          if val in predicates
+          if p_key in predicates
             # Get alternative predicate label depending on column type
-            label = @alt_predicate_label_or_default(val, column_type, label)
-            predicate_select.append $('<option value='+val+'>'+label+'</option>')
+            label = @alt_predicate_label_or_default(predicate, column_type, label)
+            predicate_select.append $('<option value='+predicate+'>'+label+'</option>')
 
         # Select first predicate if current selection is invalid
         predicate_select.select2('val', previous_val)
