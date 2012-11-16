@@ -27,9 +27,9 @@
       column_type = selected.data('type')
 
       base_id = target.attr('id').slice(0, -8)
-      predicate_select  = @element.find('select#' + base_id + 'p')
-      predicate_select2 = @element.find('#s2id_' + base_id + 'p')
-      query_input = $('input#' + base_id + "v_0_value")
+      predicate_select  = @element.find("select##{base_id}p")
+      predicate_select2 = @element.find("#s2id_#{base_id}p")
+      query_input = $("input##{base_id}v_0_value")
 
       # Initialize datepicker if column is date/datetime/time
       $.proxy(@init_datetimepicker, this)(base_id)
@@ -65,7 +65,7 @@
       else
         predicate_select2.show()
         # If Select2 is on query input, remove and set defaults
-        if query_select2 = @element.find('#s2id_' + base_id + 'v_0_value')
+        if query_select2 = @element.find("#s2id_#{base_id}v_0_value")
           query_input.select2('destroy')
           query_input.val('')
           previous_val = ''
@@ -93,7 +93,7 @@
           if p_key in predicates
             # Get alternative predicate label depending on column type
             label = @alt_predicate_label_or_default(predicate, column_type, label)
-            predicate_select.append $('<option value='+predicate+'>'+label+'</option>')
+            predicate_select.append $("<option value=#{predicate}>#{label}</option>")
 
         # Select first predicate if current selection is invalid
         predicate_select.select2('val', previous_val)
@@ -107,11 +107,11 @@
       target   = $(e.currentTarget)
       p = target.val() || ""
       base_id = target.attr('id').slice(0, -1)
-      query_input = $('input#' + base_id + "v_0_value")
+      query_input = $("input##{base_id}v_0_value")
 
       # We need to use a dummy input to handle multiple terms
       multi_id = query_input.attr('id') + '_multi'
-      multi_input = @element.find('#' + multi_id)
+      multi_input = @element.find("##{multi_id}")
 
       if Select2?
         # Turn query input into Select2 tag list when query accepts multiple values
@@ -162,7 +162,7 @@
 
       # Fetch all query inputs for condition
       base_name = target.data('base-name')
-      inputs = @element.find('input[name^="'+base_name+'"]')
+      inputs = @element.find("input[name^=\"#{base_name}\"]")
 
       # Set the original query input to the first value before shifting inputs and values
       $(inputs[0]).val(e.val[0])
@@ -265,8 +265,8 @@
 
     init_datetimepicker: (base_id) ->
       if $.ui?.timepicker?
-        query_input = @element.find('input#' + base_id + "v_0_value")
-        selected_attr = @element.find('select#' + base_id + 'a_0_name option:selected')
+        query_input = @element.find("input##{base_id}v_0_value")
+        selected_attr = @element.find("select##{base_id}a_0_name option:selected")
 
         # Clear any datepicker from query input first
         query_input.datepicker('destroy')
