@@ -3,40 +3,23 @@
     options: {}
 
     _create: ->
-      el = this.element
-      el.on 'click', '.add_fields',       $.proxy(this.add_fields, this)
-      el.on 'click', '.remove_fields',    $.proxy(this.remove_fields, this)
-      el.on 'change', 'select.ransack_predicate', $.proxy(this.predicate_changed, this)
-      el.on 'change', 'select.ransack_attribute', $.proxy(this.attribute_changed, this)
+      el = @element
+      el.on 'click', '.add_fields',                $.proxy(@add_fields, this)
+      el.on 'click', '.remove_fields',             $.proxy(@remove_fields, this)
+      el.on 'change', 'select.ransack_predicate',  $.proxy(@predicate_changed, this)
+      el.on 'change', 'select.ransack_attribute',  $.proxy(@attribute_changed, this)
+      el.on 'change', 'input.ransack_query_multi', $.proxy(@multi_query_changed, this)
 
-      # Set up Select2 on select lists in .filters
-      this.init_select2(this.element.find('.filters'))
+      # Store initial predicates and set up Select2 on select lists in .filters
+      containers = el.find('.filters')
+      @init_select2(containers)
+      @store_initial_predicates(containers)
 
       # show spinner and disable the form when the search is underway
-      el.find("form input:submit").click $.proxy(this.form_submit, this)
+      el.find("form input:submit").click $.proxy(@form_submit, this)
 
       # Fire change event for any existing selects.
       el.find(".filters select").change()
-
-      # For basic search, remove placeholder text on focus, restore on blur
-      $('#query').focusin (e) ->
-        $(this).data('placeholder', $(this).attr('placeholder')).attr('placeholder', '')
-      $('#query').focusout (e) ->
-        $(this).attr('placeholder', $(this).data('placeholder'))
-
-    predicate_changed: (e) ->
-      target   = $(e.currentTarget)
-      base_id = target.attr('id').slice(0, -1)
-      query_input = $('input#' + base_id + "v_0_value")
-      if target.val() in ["true", "false", "blank", "present", "null", "not_null"]
-        query_input.val("true")
-        query_input.hide()
-        query_input.parent().find('.ui-datepicker-trigger').hide()
-      else
-        unless query_input.is(":visible")
-          query_input.val("")
-          query_input.show()
-          query_input.parent().find('.ui-datepicker-trigger').show()
 
     attribute_changed: (e) ->
       target = $(e.currentTarget)
@@ -44,13 +27,14 @@
       column_type = selected.data('type')
 
       base_id = target.attr('id').slice(0, -8)
-      predicate_select  = this.element.find('select#' + base_id + 'p')
-      predicate_select2 = this.element.find('#s2id_' + base_id + 'p')
+      predicate_select  = @element.find('select#' + base_id + 'p')
+      predicate_select2 = @element.find('#s2id_' + base_id + 'p')
       query_input = $('input#' + base_id + "v_0_value")
 
       # Initialize datepicker if column is date/datetime/time
-      $.proxy(this.init_datetimepicker, this)(base_id)
+      $.proxy(@init_datetimepicker, this)(base_id)
 
+      # Handle association columns with AJAX autocomplete
       if selected.data('ajax-url') and Select2?
         controller = selected.data('controller')
 
@@ -76,10 +60,12 @@
               obj
             results: (data, page) ->
               {results: $.map(data, (text, id) -> {id: id, text: text}) }
+
+      # Handle regular columns
       else
         predicate_select2.show()
         # If Select2 is on query input, remove and set defaults
-        if query_select2 = this.element.find('#s2id_' + base_id + 'v_0_value')
+        if query_select2 = @element.find('#s2id_' + base_id + 'v_0_value')
           query_input.select2('destroy')
           query_input.val('')
           previous_val = ''
@@ -96,9 +82,10 @@
 
         $.each available, (i, p) =>
           [val, label] = [p[0], p[1]]
-          if val in predicates
+          # Also match compound predicates
+          if val.replace(/_(any|all)$/, '') in predicates
             # Get alternative predicate label depending on column type
-            label = this.alt_predicate_label_or_default(val, column_type, label)
+            label = @alt_predicate_label_or_default(val, column_type, label)
             predicate_select.append $('<option value='+val+'>'+label+'</option>')
 
         # Select first predicate if current selection is invalid
@@ -109,6 +96,42 @@
 
       return true
 
+    predicate_changed: (e) ->
+      target   = $(e.currentTarget)
+      p = target.val() || ""
+      base_id = target.attr('id').slice(0, -1)
+      query_input = $('input#' + base_id + "v_0_value")
+
+      # We need to use a dummy input to handle multiple terms
+      multi_id = query_input.attr('id') + '_multi'
+      multi_input = @element.find('#' + multi_id)
+
+      if Select2?
+        # Turn query input into Select2 tag list when query accepts multiple values
+        if p in ["in", "not_in"] || p.match(/_(all|any)$/)
+          # Add dummy 'multi' input for select2 if not already added
+          if multi_input.length == 0
+            @setup_multi_query_input(target, query_input, multi_id)
+          return
+        else
+          if multi_input.length > 0
+            # Otherwise, remove Select2 from multi-query input, and remove input
+            multi_input.select2('destroy').remove()
+            query_input.val('').show()
+
+      # Hide query input when not needed
+      if p in ["true", "false", "blank", "present", "null", "not_null"]
+        query_input.val("true")
+        query_input.hide()
+        query_input.parent().find('.ui-datepicker-trigger').hide()
+      # Otherwise, reset query input and show datepicker trigger if present
+      else
+        unless query_input.is(":visible")
+          query_input.val("")
+          query_input.show()
+          query_input.parent().find('.ui-datepicker-trigger').show()
+
+
     # Attempts to find a predicate translation for the specific column type,
     # or returns the default label.
     # For example, 'lt' on an integer column will be translated to 'is less than',
@@ -118,7 +141,6 @@
     # 'created_at is before 2 weeks ago' is much easier to understand.
     alt_predicate_label_or_default: (p, type, default_label) ->
       return default_label unless Ransack?.alt_predicates_i18n?
-
       alt_labels = {}
       switch type
         when "date", "datetime", "time"
@@ -128,10 +150,52 @@
 
       alt_labels[p] || default_label
 
+    multi_query_changed: (e) ->
+      target = $(e.currentTarget)
+
+      # Fetch all query inputs for condition
+      base_name = target.data('base-name')
+      inputs = @element.find('input[name^="'+base_name+'"]')
+
+      # Set the original query input to the first value before shifting inputs and values
+      $(inputs[0]).val(e.val[0])
+
+      inputs = inputs.slice(1)
+      values = e.val.slice(1)
+
+      # If value was added after the first value, then append extra input with added value
+      if values.length && e.added
+        @add_query_input(target, base_name, inputs.length + 1, e.added.text)
+
+      else if e.removed
+        # If value was removed, clear all extra inputs, then rebuild inputs for extra terms
+        inputs.remove()
+        $.each values, (i, v) =>
+          @add_query_input(target, base_name, i + 1, v)
+
+    setup_multi_query_input: (predicate_el, query_el, multi_id) ->
+      # Hide query input
+      query_el.hide()
+      base_name = predicate_el.attr('name').slice(0, -3) + '[v]'
+      query_el.after(
+        $('<input class="ransack_query_multi" id="' + multi_id + '" ' +
+          'style="width:' + (query_el.width() * 2) + 'px;" ' +
+          'data-base-name="' + base_name + '" />'))
+
+      # Find newly created input and setup Select2
+      @element.find('#' + multi_id).select2
+        tags: []
+        tokenSeparators: [',']
+        formatNoMatches: (t) ->
+          "Add a search term"
+
+    add_query_input: (base_input, base_name, id, value) ->
+      base_input.after $('<input name="'+base_name+'['+id+'][value]" '+
+                         'value="'+value+'" style="display:none;" />')
 
     form_submit: (e) ->
       $("#loading").show()
-      this.element.css({ opacity: 0.4 })
+      @element.css({ opacity: 0.4 })
       $('div.list').html('')
       true
 
@@ -143,7 +207,9 @@
       regexp = new RegExp('new_' + type, 'g')
       container = target.closest('p')
       container.before content.replace(regexp, new_id)
-      this.init_select2 container.prev()
+      prev_container = container.prev()
+      @init_select2(prev_container)
+      @store_initial_predicates(prev_container)
       # Fire change event on any new selects.
       container.prev().find("select").change()
       false
@@ -157,24 +223,25 @@
         container.parent().closest('.fields').remove()
       false
 
+    store_initial_predicates: (container) ->
+      # Store current predicates in data attribute
+      predicate_select = container.find('select.ransack_predicate')
+      unless predicate_select.data['predicates']
+        predicates = []
+        predicate_select.find('option').each (i, o) ->
+          o = $(o)
+          predicates.push [o.val(), o.text()]
+        predicate_select.data['predicates'] = predicates
+
     init_select2: (container) ->
       if Select2?
-        # Store current predicates in data attribute
-        predicate_select = container.find('select.ransack_predicate')
-        unless predicate_select.data['predicates']
-          predicates = []
-          predicate_select.find('option').each (i, o) ->
-            $o = $(o)
-            predicates.push [$o.val(), $o.text()]
-          predicate_select.data['predicates'] = predicates
-
         container.find('select.ransack_predicate').select2
-          width: '130px'
+          width: '160px'
           formatNoMatches: (term) ->
             "Select a field first"
 
         container.find('select.ransack_attribute').select2
-          width: '220px'
+          width: '230px'
           placeholder: "Select a Field"
           allowClear: true
           formatSelection: (object, container) ->
@@ -189,12 +256,10 @@
               else
                 $(object.element).parent().attr('label') + ': ' + object.text
 
-
-
     init_datetimepicker: (base_id) ->
       if $.ui?.timepicker?
-        query_input = this.element.find('input#' + base_id + "v_0_value")
-        selected_attr = this.element.find('select#' + base_id + 'a_0_name option:selected')
+        query_input = @element.find('input#' + base_id + "v_0_value")
+        selected_attr = @element.find('select#' + base_id + 'a_0_name option:selected')
 
         # Clear any datepicker from query input first
         query_input.datepicker('destroy')
