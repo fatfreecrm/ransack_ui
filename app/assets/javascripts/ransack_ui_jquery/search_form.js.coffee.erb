@@ -82,8 +82,13 @@
 
         $.each available, (i, p) =>
           [val, label] = [p[0], p[1]]
-          # Also match compound predicates
-          if val.replace(/_(any|all)$/, '') in predicates
+
+          # Also allow compound predicates, unless column
+          # is a date type. (No support for any/all on dates yet.)
+          unless column_type?.match(/date|time/)
+            val = val.replace(/_(any|all)$/, '')
+
+          if val in predicates
             # Get alternative predicate label depending on column type
             label = @alt_predicate_label_or_default(val, column_type, label)
             predicate_select.append $('<option value='+val+'>'+label+'</option>')
