@@ -16,7 +16,7 @@ module Ransack
         if bases.size > 1
           @template.select(
             @object_name, :name,
-            @template.grouped_options_for_select(attribute_collection_for_bases(bases)),
+            @template.grouped_options_for_select(attribute_collection_for_bases(bases), object.name),
             objectify_options(options), @default_options.merge(html_options)
           )
         else
