@@ -65,7 +65,7 @@
       else
         predicate_select2.show()
         # If Select2 is on query input, remove and set defaults
-        if query_select2 = @element.find("#s2id_#{base_id}v_0_value")
+        if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length > 0
           query_input.select2('destroy')
           query_input.val('')
           previous_val = ''
