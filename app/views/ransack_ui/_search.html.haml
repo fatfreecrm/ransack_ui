@@ -4,6 +4,9 @@
     if (window.Ransack == null) { window.Ransack = {}; }
     Ransack.alt_predicates_i18n = #{I18n.translate(:"ransack.predicates.alt", :default => {}).to_json}
 
+  = f.sort_fields do |s|
+    = render 'ransack_ui/sort_fields', :f => s
+
   = f.grouping_fields do |g|
     = render 'ransack_ui/grouping_fields', :f => g
 

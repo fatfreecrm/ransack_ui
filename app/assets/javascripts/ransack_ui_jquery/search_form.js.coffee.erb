@@ -270,6 +270,10 @@
               else
                 group_label + ': ' + object.text
 
+        @element.find('select.ransack_sort').select2
+          width: '230px'
+          placeholder: "Select a Field"
+
     init_datetimepicker: (base_id) ->
       if $.ui?.timepicker?
         query_input = @element.find("input##{base_id}v_0_value")

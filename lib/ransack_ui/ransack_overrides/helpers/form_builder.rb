@@ -20,7 +20,8 @@ module Ransack
             objectify_options(options), @default_options.merge(html_options)
           )
         else
-          collection = object.context.searchable_attributes(bases.first).map do |c|
+          # searchable_attributes now returns [c, type]
+          collection = object.context.searchable_attributes(bases.first).map do |c, type|
             [
               attr_from_base_and_column(bases.first, c),
               Translate.attribute(attr_from_base_and_column(bases.first, c), :context => object.context)
@@ -28,6 +29,37 @@ module Ransack
           end
           @template.collection_select(
             @object_name, :name, collection, :first, :last,
+            objectify_options(options), @default_options.merge(html_options)
+          )
+        end
+      end
+
+      def sort_select(options = {}, html_options = {})
+        raise ArgumentError, "sort_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
+        options[:include_blank] = true unless options.has_key?(:include_blank)
+        bases = [''] + association_array(options[:associations])
+        if bases.size > 1
+          @template.select(
+            @object_name, :name,
+            @template.grouped_options_for_select(attribute_collection_for_bases(bases), object.name),
+            objectify_options(options), @default_options.merge({class: 'ransack_sort'}).merge(html_options)
+          ) + @template.collection_select(
+            @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
+            objectify_options(options), @default_options.merge(html_options)
+          )
+        else
+          # searchable_attributes now returns [c, type]
+          collection = object.context.searchable_attributes(bases.first).map do |c, type|
+            [
+              attr_from_base_and_column(bases.first, c),
+              Translate.attribute(attr_from_base_and_column(bases.first, c), :context => object.context)
+            ]
+          end
+          @template.collection_select(
+            @object_name, :name, collection, :first, :last,
+            objectify_options(options), @default_options.merge({class: 'ransack_sort'}).merge(html_options)
+          ) + @template.collection_select(
+            @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
             objectify_options(options), @default_options.merge(html_options)
           )
         end
