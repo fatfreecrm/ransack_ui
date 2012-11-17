@@ -181,20 +181,27 @@
           @add_query_input(target, base_name, i + 1, v)
 
     setup_multi_query_input: (predicate_el, query_el, multi_id) ->
-      # Hide query input
-      query_el.hide()
       base_name = predicate_el.attr('name').slice(0, -3) + '[v]'
       query_el.after(
         $('<input class="ransack_query_multi" id="' + multi_id + '" ' +
           'style="width:' + (query_el.width() * 2) + 'px;" ' +
           'data-base-name="' + base_name + '" />'))
 
+      # Fetch all existing values
+      inputs = @element.find("input[name^=\"#{base_name}\"]")
+      values = $.map inputs, (el) ->
+        el.value
+      # Hide all query inputs
+      inputs.hide()
+
       # Find newly created input and setup Select2
-      @element.find('#' + multi_id).select2
+      multi_query = @element.find('#' + multi_id)
+      multi_query.select2
         tags: []
         tokenSeparators: [',']
         formatNoMatches: (t) ->
           "Add a search term"
+      multi_query.select2('val', values)
 
     add_query_input: (base_input, base_name, id, value) ->
       base_input.after $('<input name="'+base_name+'['+id+'][value]" '+
