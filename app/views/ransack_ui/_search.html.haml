@@ -11,9 +11,9 @@
     = render 'ransack_ui/grouping_fields', :f => g
 
   %p
-    = link_to_add_fields t(:advanced_search_add_group), f, :grouping
+    = link_to_add_fields t(:add_group), f, :grouping
 
   %p
     = hidden_field_tag :distinct, '1'
     = hidden_field_tag :page, '1'
-    = f.submit t(:advanced_search_submit)
+    = f.submit t(:submit)
