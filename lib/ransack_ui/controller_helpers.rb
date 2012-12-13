@@ -12,7 +12,6 @@ module RansackUI
       klass ||= controller_name.classify.constantize
       @ransack_search = klass.search(params[:q])
       @ransack_search.build_grouping if @ransack_search.groupings.empty?
-      @ransack_search.build_sort if @ransack_search.sorts.empty?
       @ransack_search
     end
   end
