@@ -12,11 +12,12 @@
       %p
         = link_to_add_fields t(:add_group), f, :grouping
 
-  .row
-    .span12.well
+      %hr
+
       .pull-left
         = f.sort_fields do |s|
           = render 'ransack_ui/sort_fields', :f => s
+
       .pull-right
         = hidden_field_tag :distinct, '1'
         = hidden_field_tag :page, '1'
