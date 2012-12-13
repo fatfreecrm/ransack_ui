@@ -1,7 +1,8 @@
 .fields.well{ 'data-object-name' => f.object_name }
-  %p
+  .combinator
     - key = (f.object_name =~ /[0]/) ? :group_first : :group_rest
-    = t(key, :combinator => f.combinator_select).html_safe
+    - combinator = f.combinator_select({}, :class => 'ransack_combinator') + render('ransack_ui/combinator_radio')
+    = t(key, :combinator => combinator).html_safe
 
   .filters
     - f.object.build_condition unless f.object.conditions.any?

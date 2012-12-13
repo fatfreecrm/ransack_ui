@@ -17,8 +17,8 @@ en:
           gteq_all: "is after or on all"
 
   submit: Search
-  add_group: Add a group of filters
-  group_first: Show results where %{combinator} of the following match
-  group_rest: ...and where %{combinator} of the following match
+  add_group: Add a filter group
+  group_first: "Show results where %{combinator} of the following match:"
+  group_rest: "...and where %{combinator} of the following match:"
   add_condition: Add a filter
   remove_condition: Remove filter

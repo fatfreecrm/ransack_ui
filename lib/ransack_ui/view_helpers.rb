@@ -9,7 +9,9 @@ module RansackUI
       fields = f.send("#{type}_fields", new_object, :child_index => "new_#{type}") do |builder|
         render "ransack_ui/#{type.to_s}_fields", :f => builder
       end
-      link_to name, nil, :class => "add_fields", "data-field-type" => type, "data-content" => "#{fields}"
+      link_to nil, :class => "add_fields btn btn-small btn-primary", "data-field-type" => type, "data-content" => "#{fields}" do
+        "<i class=\"icon-plus-sign icon-white\"></i> #{name}".html_safe
+      end
     end
 
     def link_to_remove_fields(name, f)

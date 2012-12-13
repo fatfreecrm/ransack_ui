@@ -10,9 +10,13 @@
       el.on 'change', 'select.ransack_attribute',  $.proxy(@attribute_changed, this)
       el.on 'change', 'input.ransack_query_multi', $.proxy(@multi_query_changed, this)
 
+      el.on 'click', '.ransack_combinator_radio .btn', $.proxy(@update_select_from_radio, this)
+      el.on 'click', '.ransack_sort_radio .btn',       $.proxy(@update_select_from_radio, this)
+
       # Store initial predicates and set up Select2 on select lists in .filters
       containers = el.find('.filters')
       @init_select2(containers)
+      @init_select_radios()
       @store_initial_predicates(containers)
 
       # show spinner and disable the form when the search is underway
@@ -234,6 +238,21 @@
       else
         container.parent().closest('.fields').remove()
       false
+
+    init_select_radios: ->
+      @element.find('.select-radio').each (i, b) ->
+        b = $(b)
+        val = b.parent().find('.' + b.data('select')).val()
+
+        console.log val
+        b.find('.btn').removeClass 'active'
+        b.find(".btn[value=\"#{val}\"]").addClass 'active'
+
+    update_select_from_radio: (e) ->
+      target = $(e.currentTarget)
+      group = target.parent()
+      select = group.parent().find('select.'+group.data('select'))
+      select.val target.val()
 
     store_initial_predicates: (container) ->
       # Store current predicates in data attribute
