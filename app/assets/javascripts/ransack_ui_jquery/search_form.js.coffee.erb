@@ -237,7 +237,7 @@
 
     store_initial_predicates: (container) ->
       # Store current predicates in data attribute
-      predicate_select = container.find('select.ransack_predicate')
+      predicate_select = container.find('select.ransack_predicate:first')
       unless predicate_select.data['predicates']
         predicates = []
         predicate_select.find('option').each (i, o) ->
