@@ -1,7 +1,7 @@
 module RansackUI
   module ViewHelpers
-    def ransack_ui_search
-      render 'ransack_ui/search'
+    def ransack_ui_search(options)
+      render 'ransack_ui/search', :options => options
     end
 
     def link_to_add_fields(name, f, type)

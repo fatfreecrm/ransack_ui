@@ -1,19 +1,23 @@
-= search_form_for @ransack_search, :url => url_for(:action => :index), :html => {:method => :get, :class => "ransack_search"}, :remote => true do |f|
+= search_form_for @ransack_search, :url => url_for(:action => :index), :html => {:method => :get, :class => "ransack_search"}, :remote => !!options[:remote] do |f|
 
   :javascript
     if (window.Ransack == null) { window.Ransack = {}; }
     Ransack.alt_predicates_i18n = #{I18n.translate(:"ransack.predicates.alt", :default => {}).to_json}
 
-  = f.sort_fields do |s|
-    = render 'ransack_ui/sort_fields', :f => s
+  .row
+    .span12.well
+      = f.grouping_fields do |g|
+        = render 'ransack_ui/grouping_fields', :f => g
 
-  = f.grouping_fields do |g|
-    = render 'ransack_ui/grouping_fields', :f => g
+      %p
+        = link_to_add_fields t(:add_group), f, :grouping
 
-  %p
-    = link_to_add_fields t(:add_group), f, :grouping
-
-  %p
-    = hidden_field_tag :distinct, '1'
-    = hidden_field_tag :page, '1'
-    = f.submit t(:submit)
+  .row
+    .span12.well
+      .pull-left
+        = f.sort_fields do |s|
+          = render 'ransack_ui/sort_fields', :f => s
+      .pull-right
+        = hidden_field_tag :distinct, '1'
+        = hidden_field_tag :page, '1'
+        = f.submit t(:submit), :class => 'btn btn-primary btn-large'

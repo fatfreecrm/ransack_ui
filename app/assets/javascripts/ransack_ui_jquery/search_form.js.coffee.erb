@@ -208,9 +208,7 @@
                          'value="'+value+'" style="display:none;" />')
 
     form_submit: (e) ->
-      $("#loading").show()
       @element.css({ opacity: 0.4 })
-      $('div.list').html('')
       true
 
     add_fields: (e) ->
