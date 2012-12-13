@@ -243,8 +243,6 @@
       @element.find('.select-radio').each (i, b) ->
         b = $(b)
         val = b.parent().find('.' + b.data('select')).val()
-
-        console.log val
         b.find('.btn').removeClass 'active'
         b.find(".btn[value=\"#{val}\"]").addClass 'active'
 
