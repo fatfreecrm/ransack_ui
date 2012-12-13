@@ -45,7 +45,7 @@ module Ransack
             objectify_options(options), @default_options.merge({class: 'ransack_sort'}).merge(html_options)
           ) + @template.collection_select(
             @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
-            objectify_options(options), @default_options.merge({class: 'ransack_sort_order'}).merge(html_options)
+            objectify_options(options.except(:include_blank)), @default_options.merge({class: 'ransack_sort_order'}).merge(html_options)
           )
         else
           # searchable_attributes now returns [c, type]
@@ -60,7 +60,7 @@ module Ransack
             objectify_options(options), @default_options.merge({class: 'ransack_sort'}).merge(html_options)
           ) + @template.collection_select(
             @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
-            objectify_options(options), @default_options.merge({class: 'ransack_sort_order'}).merge(html_options)
+            objectify_options(options.except(:include_blank)), @default_options.merge({class: 'ransack_sort_order'}).merge(html_options)
           )
         end
       end
