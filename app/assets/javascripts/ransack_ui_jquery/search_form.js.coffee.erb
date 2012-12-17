@@ -10,14 +10,13 @@
       el.on 'change', 'select.ransack_attribute',  $.proxy(@attribute_changed, this)
       el.on 'change', 'input.ransack_query_multi', $.proxy(@multi_query_changed, this)
 
-      el.on 'click', '.ransack_combinator_radio .btn', $.proxy(@update_select_from_radio, this)
-      el.on 'click', '.ransack_sort_radio .btn',       $.proxy(@update_select_from_radio, this)
-
       # Store initial predicates and set up Select2 on select lists in .filters
       containers = el.find('.filters')
       @init_select2(containers)
-      @init_select_radios()
       @store_initial_predicates(containers)
+
+      if $.ransack.button_group_select?
+        @init_button_group_select(@element)
 
       # show spinner and disable the form when the search is underway
       el.find("form input:submit").click $.proxy(@form_submit, this)
@@ -224,7 +223,12 @@
       container = target.closest('p')
       container.before content.replace(regexp, new_id)
       prev_container = container.prev()
+
       @init_select2(prev_container)
+
+      if $.ransack.button_group_select?
+        @init_button_group_select(prev_container)
+
       @store_initial_predicates(prev_container)
       # Fire change event on any new selects.
       container.prev().find("select").change()
@@ -238,19 +242,6 @@
       else
         container.parent().closest('.fields').remove()
       false
-
-    init_select_radios: ->
-      @element.find('.select-radio').each (i, b) ->
-        b = $(b)
-        val = b.parent().find('.' + b.data('select')).val()
-        b.find('.btn').removeClass 'active'
-        b.find(".btn[value=\"#{val}\"]").addClass 'active'
-
-    update_select_from_radio: (e) ->
-      target = $(e.currentTarget)
-      group = target.parent()
-      select = group.parent().find('select.'+group.data('select'))
-      select.val target.val()
 
     store_initial_predicates: (container) ->
       # Store current predicates in data attribute
@@ -290,6 +281,9 @@
         @element.find('select.ransack_sort').select2
           width: '230px'
           placeholder: "Select a Field"
+
+    init_button_group_select: (containers) ->
+      containers.find('select.ransack_combinator, select.ransack_sort_order').button_group_select()
 
     init_datetimepicker: (base_id) ->
       if $.ui?.timepicker?

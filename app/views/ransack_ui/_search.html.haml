@@ -1,4 +1,4 @@
-= search_form_for @ransack_search, :url => (options[:url] || url_for(:action => :index)), 
+= search_form_for @ransack_search, :url => (options[:url] || url_for(:action => :index)),
   :html => {:method => :get, :class => "ransack_search"}, :remote => !!options[:remote] do |f|
 
   :javascript
@@ -8,10 +8,10 @@
   .row
     .span12.well
       = f.grouping_fields do |g|
-        = render 'ransack_ui/grouping_fields', :f => g
+        = render 'ransack_ui/grouping_fields', :f => g, :options => options
 
       %p
-        = link_to_add_fields t(:add_group), f, :grouping
+        = link_to_add_fields t(:add_group), f, :grouping, options
 
       %hr
 
