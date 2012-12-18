@@ -1,6 +1,6 @@
 module RansackUI
   module ViewHelpers
-    def ransack_ui_search(options)
+    def ransack_ui_search(options = {})
       render 'ransack_ui/search', :options => options
     end
 

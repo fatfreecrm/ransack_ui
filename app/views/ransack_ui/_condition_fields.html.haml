@@ -1,6 +1,6 @@
 .fields.condition{ "data-object-name" => f.object_name }
   %p
-    = link_to_remove_fields t(:remove_condition), f, options
+    = link_to_remove_fields t('ransack.remove_condition'), f, options
 
     = f.attribute_fields do |a|
       %span.fields{ "data-object-name" => f.object_name }

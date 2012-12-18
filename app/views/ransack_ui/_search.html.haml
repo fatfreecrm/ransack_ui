@@ -11,7 +11,7 @@
         = render 'ransack_ui/grouping_fields', :f => g, :options => options
 
       %p
-        = link_to_add_fields t(:add_group), f, :grouping, options
+        = link_to_add_fields t('ransack.add_group'), f, :grouping, options
 
       %hr
 
@@ -22,4 +22,4 @@
       .pull-right
         = hidden_field_tag :distinct, '1'
         = hidden_field_tag :page, '1'
-        = f.submit t(:submit), :class => 'btn btn-primary btn-large'
+        = f.submit t('ransack.submit'), :class => 'btn btn-primary btn-large'
