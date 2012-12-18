@@ -90,6 +90,18 @@ module Ransack
 
         ajax_options = Ransack.options[:ajax_options] || {}
 
+        # Detect any inclusion validators to build list of options for a column
+        column_select_options = klass.validators.each_with_object({}) do |v, hash|
+          if v.is_a? ActiveModel::Validations::InclusionValidator
+            v.attributes.each do |a|
+              # Try to translate options from activerecord.attribute_options.<model>.<attribute>
+              hash[a.to_s] = v.send(:delimiter).each_with_object({}) do |o, options|
+                options[o] = I18n.translate("activerecord.attribute_options.#{klass.to_s.downcase}.#{a}.#{o}", :default => o)
+              end
+            end
+          end
+        end
+
         object.context.searchable_attributes(base).map do |c, type|
           # Don't show 'id' column for base model
           next nil if base.blank? && c == 'id'
@@ -111,6 +123,13 @@ module Ransack
           html_options = {:'data-type' => type}
           # Set 'base' attribute if attribute is on base model
           html_options[:'data-root-model'] = true if base.blank?
+          # Set column options if detected from inclusion validator
+          if column_select_options[c]
+            # Format options as an array of hashes with id and text columns, for Select2
+            html_options[:'data-select-options'] = column_select_options[c].map {|id, text|
+              {:id => id, :text => text}
+            }.to_json
+          end
 
           if foreign_klass
             # If field is a foreign key, set up 'data-ajax-*' attributes for auto-complete

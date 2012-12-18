@@ -40,12 +40,7 @@
       # Handle association columns with AJAX autocomplete
       if selected.data('ajax-url') and Select2?
         controller = selected.data('controller')
-
-        # Hide predicate Select2
-        predicate_select2.hide()
-        # Clear predicates, and set 'eq' predicate
-        predicate_select.find('option').each (i, o) -> $(o).remove()
-        predicate_select.append $('<option selected="selected" value="eq">is</option>')
+        @force_eq_predicate(base_id)
 
         # Set up Select2 for query input
         query_input.val('')
@@ -64,9 +59,18 @@
             results: (data, page) ->
               {results: $.map(data, (text, id) -> {id: id, text: text}) }
 
+      # Handle columns with options detected from validates :inclusion
+      else if selected.data('select-options') and Select2?
+        @force_eq_predicate(base_id)
+        query_input.val('')
+        query_input.select2
+          data: selected.data('select-options')
+          placeholder: "Please select a #{selected.val()}"
+          allowClear: true
+
       # Handle regular columns
       else
-        predicate_select2.show()
+        predicate_select2.select2("enable")
         # If Select2 is on query input, remove and set defaults
         if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length > 0
           query_input.select2('destroy')
@@ -141,6 +145,17 @@
           query_input.show()
           query_input.parent().find('.ui-datepicker-trigger').show()
 
+
+    # Dsiables predicate choices and sets it to 'eq'
+    force_eq_predicate: (base_id) ->
+      predicate_select  = @element.find("select##{base_id}p")
+      predicate_select2 = @element.find("#s2id_#{base_id}p")
+      # Disable predicate Select2
+      predicate_select2.select2('disable')
+      # Clear predicates, and set 'eq' predicate
+      predicate_select.find('option').each (i, o) -> $(o).remove()
+      predicate_select.append $('<option selected="selected" value="eq">is</option>')
+      predicate_select2.select2('val', 'eq')
 
     # Attempts to find a predicate translation for the specific column type,
     # or returns the default label.
