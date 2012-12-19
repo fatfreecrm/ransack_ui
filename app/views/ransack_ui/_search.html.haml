@@ -7,17 +7,15 @@
 
   .row
     .span12.well
+    
+      = f.sort_fields do |s|
+        = render 'ransack_ui/sort_fields', :f => s
+
       = f.grouping_fields do |g|
         = render 'ransack_ui/grouping_fields', :f => g, :options => options
 
       %p
         = link_to_add_fields t('ransack.add_group'), f, :grouping, options
-
-      %hr
-
-      .pull-left
-        = f.sort_fields do |s|
-          = render 'ransack_ui/sort_fields', :f => s
 
       .pull-right
         = hidden_field_tag :distinct, '1'
