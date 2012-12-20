@@ -3,7 +3,7 @@
 Provides HTML templates and JavaScript to build a fully functional
 advanced search form using Ransack.
 
-Please note: this project is still in alpha and the following instructions are not yet complete/fully working.
+Please note: this project is still in *alpha* and the following instructions are not yet complete/fully working.
 
 ## Installation
 
