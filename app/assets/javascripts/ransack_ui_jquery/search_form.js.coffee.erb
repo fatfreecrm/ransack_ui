@@ -12,7 +12,8 @@
 
       # Store initial predicates and set up Select2 on select lists in .filters
       containers = el.find('.filters')
-      @init_select2(containers)
+      if Select2?
+        @init_select2(containers)
       @store_initial_predicates(containers)
 
       if $.ransack.button_group_select?
@@ -31,7 +32,6 @@
 
       base_id = target.attr('id').slice(0, -8)
       predicate_select  = @element.find("select##{base_id}p")
-      predicate_select2 = @element.find("#s2id_#{base_id}p")
       query_input = $("input##{base_id}v_0_value")
 
       # Initialize datepicker if column is date/datetime/time
@@ -70,14 +70,17 @@
 
       # Handle regular columns
       else
-        predicate_select2.select2("enable")
-        # If Select2 is on query input, remove and set defaults
-        if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length > 0
-          query_input.select2('destroy')
-          query_input.val('')
-          previous_val = ''
-        else
-          previous_val = predicate_select.val()
+        if Select2?
+          predicate_select2 = @element.find("#s2id_#{base_id}p")
+          predicate_select2.select2("enable")
+
+          # If Select2 is on query input, remove and set defaults
+          if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length > 0
+            query_input.select2('destroy')
+            query_input.val('')
+            previous_val = ''
+          else
+            previous_val = predicate_select.val()
 
         # Build array of supported predicates
         available = predicate_select.data['predicates']
@@ -103,7 +106,8 @@
             predicate_select.append $("<option value=#{predicate}>#{label}</option>")
 
         # Select first predicate if current selection is invalid
-        predicate_select.select2('val', previous_val)
+        if Select2?
+          predicate_select.select2('val', previous_val)
 
         # Run predicate_changed callback
         predicate_select.change()
@@ -149,13 +153,15 @@
     # Dsiables predicate choices and sets it to 'eq'
     force_eq_predicate: (base_id) ->
       predicate_select  = @element.find("select##{base_id}p")
-      predicate_select2 = @element.find("#s2id_#{base_id}p")
-      # Disable predicate Select2
-      predicate_select2.select2('disable')
       # Clear predicates, and set 'eq' predicate
       predicate_select.find('option').each (i, o) -> $(o).remove()
       predicate_select.append $('<option selected="selected" value="eq">is</option>')
-      predicate_select2.select2('val', 'eq')
+
+      if Select2?
+        predicate_select2 = @element.find("#s2id_#{base_id}p")
+        # Disable predicate Select2
+        predicate_select2.select2('disable')
+        predicate_select2.select2('val', 'eq')
 
     # Attempts to find a predicate translation for the specific column type,
     # or returns the default label.
@@ -212,14 +218,15 @@
       # Hide all query inputs
       inputs.hide()
 
-      # Find newly created input and setup Select2
-      multi_query = @element.find('#' + multi_id)
-      multi_query.select2
-        tags: []
-        tokenSeparators: [',']
-        formatNoMatches: (t) ->
-          "Add a search term"
-      multi_query.select2('val', values)
+      if Select2?
+        # Find newly created input and setup Select2
+        multi_query = @element.find('#' + multi_id)
+        multi_query.select2
+          tags: []
+          tokenSeparators: [',']
+          formatNoMatches: (t) ->
+            "Add a search term"
+        multi_query.select2('val', values)
 
     add_query_input: (base_input, base_name, id, value) ->
       base_input.after $('<input name="'+base_name+'['+id+'][value]" '+
@@ -239,7 +246,8 @@
       container.before content.replace(regexp, new_id)
       prev_container = container.prev()
 
-      @init_select2(prev_container)
+      if Select2?
+        @init_select2(prev_container)
 
       if $.ransack.button_group_select?
         @init_button_group_select(prev_container)
@@ -269,33 +277,32 @@
         predicate_select.data['predicates'] = predicates
 
     init_select2: (container) ->
-      if Select2?
-        container.find('select.ransack_predicate').select2
-          width: '160px'
-          formatNoMatches: (term) ->
-            "Select a field first"
+      container.find('select.ransack_predicate').select2
+        width: '160px'
+        formatNoMatches: (term) ->
+          "Select a field first"
 
-        container.find('select.ransack_attribute').select2
-          width: '230px'
-          placeholder: "Select a Field"
-          allowClear: true
-          formatSelection: (object, container) ->
-            # Return 'Model: field' unless column is on root model
-            if !object.element || $(object.element).data('root-model')
+      container.find('select.ransack_attribute').select2
+        width: '230px'
+        placeholder: "Select a Field"
+        allowClear: true
+        formatSelection: (object, container) ->
+          # Return 'Model: field' unless column is on root model
+          if !object.element || $(object.element).data('root-model')
+            object.text
+          else
+            group_label = $(object.element).parent().attr('label')
+            # Avoid labels like 'Contact: Contact'
+            if group_label == object.text
               object.text
+            else if group_label?
+              group_label + ': ' + object.text
             else
-              group_label = $(object.element).parent().attr('label')
-              # Avoid labels like 'Contact: Contact'
-              if group_label == object.text
-                object.text
-              else if group_label?
-                group_label + ': ' + object.text
-              else
-                object.text
+              object.text
 
-        @element.find('select.ransack_sort').select2
-          width: '230px'
-          placeholder: "Select a Field"
+      @element.find('select.ransack_sort').select2
+        width: '230px'
+        placeholder: "Select a Field"
 
     init_button_group_select: (containers) ->
       containers.find('select.ransack_combinator, select.ransack_sort_order').button_group_select()
