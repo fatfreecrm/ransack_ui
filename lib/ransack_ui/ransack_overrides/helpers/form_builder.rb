@@ -1,4 +1,4 @@
-  require 'ransack/helpers/form_builder'
+require 'ransack/helpers/form_builder'
 
 module Ransack
   module Helpers
@@ -56,6 +56,22 @@ module Ransack
             objectify_options(options.except(:include_blank)), @default_options.merge({class: 'ransack_sort_order'}).merge(html_options)
           )
         end
+      end
+
+      def predicate_keys(options)
+        keys = options[:compounds] ? Predicate.names : Predicate.names.reject {|k| k.match(/_(any|all)$/)}
+        if only = options[:only]
+          if only.respond_to? :call
+            keys = keys.select {|k| only.call(k)}
+          else
+            only = Array.wrap(only).map(&:to_s)
+            # Create compounds hash, e.g. {"eq" => ["eq", "eq_any", "eq_all"], "blank" => ["blank"]}
+            key_groups = keys.inject(Hash.new([])){ |h,k| h[k.sub(/_(any|all)$/, '')] += [k]; h }
+            # Order compounds hash by 'only' keys
+            keys = only.map {|k| key_groups[k] }.flatten.compact
+          end
+        end
+        keys
       end
 
       def predicate_select(options = {}, html_options = {})
@@ -154,5 +170,6 @@ module Ransack
         nil
       end
     end
+
   end
 end
