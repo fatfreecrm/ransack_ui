@@ -242,9 +242,8 @@
       content = target.data("content")
       new_id = new Date().getTime()
       regexp = new RegExp('new_' + type, 'g')
-      container = target.closest('p')
-      container.before content.replace(regexp, new_id)
-      prev_container = container.prev()
+      target.before content.replace(regexp, new_id)
+      prev_container = target.prev()
 
       if Select2?
         @init_select2(prev_container)
@@ -254,7 +253,7 @@
 
       @store_initial_predicates(prev_container)
       # Fire change event on any new selects.
-      container.prev().find("select").change()
+      prev_container.find("select").change()
       false
 
     remove_fields: (e) ->
