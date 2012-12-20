@@ -1,4 +1,4 @@
-#ransack_search {
+.ransack_search {
   .remove_fields, .ransack_attribute, .ransack_predicate,
   .ransack_query, .ransack_sort_order, .ransack_sort,
   .btn-group-select {
@@ -19,10 +19,15 @@
     &:hover { opacity: 1; }
   }
 
-  a.btn {
-    i    { margin-bottom: 2px; }
+  .add_fields.btn {
+    margin-top: 20px;
+  }
+
+  .btn {
+    i    { line-height: 16px; }
     span { margin-left: 5px; }
   }
+  .btn-small { padding-left: 6px; }
 
   .combinator { margin-bottom: 20px; }
 
@@ -30,4 +35,7 @@
     margin-top: 20px;
   }
 
+  .fields.sort {
+    margin-bottom: 20px;
+  }
 }
