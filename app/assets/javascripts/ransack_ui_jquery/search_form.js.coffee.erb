@@ -32,6 +32,7 @@
 
       base_id = target.attr('id').slice(0, -8)
       predicate_select  = @element.find("select##{base_id}p")
+      available = predicate_select.data['predicates']
       query_input = $("input##{base_id}v_0_value")
 
       # Initialize datepicker if column is date/datetime/time
@@ -40,7 +41,7 @@
       # Handle association columns with AJAX autocomplete
       if selected.data('ajax-url') and Select2?
         controller = selected.data('controller')
-        @force_eq_predicate(base_id)
+        @set_option_predicates(base_id, available, column_type)
 
         # Set up Select2 for query input
         query_input.val('')
@@ -61,7 +62,7 @@
 
       # Handle columns with options detected from validates :inclusion
       else if selected.data('select-options') and Select2?
-        @force_eq_predicate(base_id)
+        @set_option_predicates(base_id, available, column_type)
         query_input.val('')
         query_input.select2
           data: selected.data('select-options')
@@ -83,7 +84,6 @@
             previous_val = predicate_select.val()
 
         # Build array of supported predicates
-        available = predicate_select.data['predicates']
         predicates = Ransack.type_predicates[column_type] || []
         predicates = $.map predicates, (p) -> [p, Ransack.predicates[p]]
 
@@ -114,11 +114,15 @@
 
       return true
 
+
     predicate_changed: (e) ->
       target   = $(e.currentTarget)
       p = target.val() || ""
       base_id = target.attr('id').slice(0, -1)
       query_input = $("input##{base_id}v_0_value")
+
+      attribute_select  = @element.find("select##{base_id}a_0_name")
+      selected_attribute = attribute_select.find('option:selected')
 
       # We need to use a dummy input to handle multiple terms
       multi_id = query_input.attr('id') + '_multi'
@@ -127,18 +131,50 @@
       if Select2?
         # Turn query input into Select2 tag list when query accepts multiple values
         if p in ["in", "not_in"] || p.match(/_(all|any)$/)
+          # If Select2 is on query input, remove and set defaults
+          if @element.find("#s2id_#{base_id}v_0_value").length
+            query_input.select2('destroy')
+
           # Add dummy 'multi' input for select2 if not already added
           if multi_input.length == 0
-            @setup_multi_query_input(target, query_input, multi_id)
+            # Set up multi-query input with fixed options, if present
+            query_input.val('')
+            options = selected_attribute.data('select-options')
+            @setup_multi_query_input(target, query_input, multi_id, options)
+
           return
-        else
-          if multi_input.length > 0
-            # Otherwise, remove Select2 from multi-query input, and remove input
+
+        else           
+          if multi_input.length
+            # Otherwise, remove Select2 from multi-query input, and remove input.
             multi_input.select2('destroy').remove()
+            # Also remove all extra inputs
+            base_name = multi_input.data('base-name')
+            inputs = @element.find("input[name^=\"#{base_name}\"]")
+            inputs = inputs.slice(1)
+            inputs.remove()
+
+            # If no fixed options, show query input
             query_input.val('').show()
+            
+          # Handle fixed options - set up Select2 for single values if not already present
+          if selected_attribute.data('select-options')
+            if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length == 0
+              query_input.select2
+                data: selected_attribute.data('select-options')
+                placeholder: "Please select a #{selected_attribute.val()}"
+                allowClear: true
+
+            return
+
 
       # Hide query input when not needed
       if p in ["true", "false", "blank", "present", "null", "not_null"]
+        # If Select2 is on query input, remove and set defaults
+        if Select2? && @element.find("#s2id_#{base_id}v_0_value").length
+          query_input.select2('destroy')
+          query_input.val('')
+
         query_input.val("true")
         query_input.hide()
         query_input.parent().find('.ui-datepicker-trigger').hide()
@@ -151,16 +187,22 @@
 
 
     # Dsiables predicate choices and sets it to 'eq'
-    force_eq_predicate: (base_id) ->
+    set_option_predicates: (base_id, available, column_type) ->
       predicate_select  = @element.find("select##{base_id}p")
-      # Clear predicates, and set 'eq' predicate
+
+      # Remove all predicates, and add any supported predicates
       predicate_select.find('option').each (i, o) -> $(o).remove()
-      predicate_select.append $('<option selected="selected" value="eq">is</option>')
+
+      $.each available, (i, p) =>
+        [predicate, label] = [p[0], p[1]]
+
+        if predicate in Ransack.option_predicates
+          # Get alternative predicate label depending on column type
+          label = @alt_predicate_label_or_default(predicate, column_type, label)
+          predicate_select.append $("<option value=#{predicate}>#{label}</option>")
 
       if Select2?
         predicate_select2 = @element.find("#s2id_#{base_id}p")
-        # Disable predicate Select2
-        predicate_select2.select2('disable')
         predicate_select2.select2('val', 'eq')
 
     # Attempts to find a predicate translation for the specific column type,
@@ -196,7 +238,7 @@
 
       # If value was added after the first value, then append extra input with added value
       if values.length && e.added
-        @add_query_input(target, base_name, inputs.length + 1, e.added.text)
+        @add_query_input(target, base_name, inputs.length + 1, e.added.id)
 
       else if e.removed
         # If value was removed, clear all extra inputs, then rebuild inputs for extra terms
@@ -204,7 +246,7 @@
         $.each values, (i, v) =>
           @add_query_input(target, base_name, i + 1, v)
 
-    setup_multi_query_input: (predicate_el, query_el, multi_id) ->
+    setup_multi_query_input: (predicate_el, query_el, multi_id, options) ->
       base_name = predicate_el.attr('name').slice(0, -3) + '[v]'
       query_el.after(
         $('<input class="ransack_query_multi" id="' + multi_id + '" ' +
@@ -221,11 +263,32 @@
       if Select2?
         # Find newly created input and setup Select2
         multi_query = @element.find('#' + multi_id)
-        multi_query.select2
-          tags: []
-          tokenSeparators: [',']
-          formatNoMatches: (t) ->
-            "Add a search term"
+
+        if options?
+          # Setup Select2 with fixed options
+          multi_query.select2
+            data: options
+            multiple: true
+            tokenSeparators: [',']
+            formatNoMatches:
+              if options
+                (t) -> "No matches found."
+              else
+                (t) -> "Add a search term"
+            initSelection: (element, callback) ->
+              data = []
+              unless element.val().trim() == ""
+                $(element.val().split(",")).each ->
+                  data.push {id: this, text: this}
+              callback(data)
+        else
+          # Setup Select2 with tagging support (can create options)
+          multi_query.select2
+            tags: []
+            tokenSeparators: [',']
+            formatNoMatches: (t) ->
+              "Add a search term"
+
         multi_query.select2('val', values)
 
     add_query_input: (base_input, base_name, id, value) ->
