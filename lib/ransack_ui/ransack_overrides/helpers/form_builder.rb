@@ -99,10 +99,13 @@ module Ransack
         end.compact
       end
 
-      def attribute_collection_for_base(base)
+      # Passing attributes can filter out attributes from the view, a hash is expected like
+      # { :model_name => [:column_1, :column2], :model_name_2 => [:column_1] }
+      def attribute_collection_for_base(base, attributes=nil)
         klass = object.context.traverse(base)
+        # If the foreign key is an array (composite_primary_keys) then skip
         foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
-                         map_to({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
+                         map_to({}) { |r, h| h[r.foreign_key.to_sym] = r.class_name if !r.foreign_key.is_a?(Array) }
 
         ajax_options = Ransack.options[:ajax_options] || {}
 
