@@ -157,7 +157,7 @@ module Ransack
 
           if foreign_klass
             # If field is a foreign key, set up 'data-ajax-*' attributes for auto-complete
-            controller = foreign_klass.constantize._ransack_autocompletes_through.name.tableize
+            controller = foreign_klass.constantize._ransack_autocompletes_through.controller_path
             html_options[:'data-ajax-entity'] = I18n.translate(controller, :default => controller)
             if ajax_options[:url]
               html_options[:'data-ajax-url'] = ajax_options[:url].sub(':controller', controller)
