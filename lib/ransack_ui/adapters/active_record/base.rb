@@ -24,7 +24,7 @@ module RansackUI
         # (Default to :string type for ransackers)
         def ransackable_attributes(auth_object = nil)
           columns.map{|c| [c.name, c.type] } +
-          _ransackers.keys.map {|k| [k, :string] }
+          _ransackers.keys.map {|k| [k, _ransackers.first[1].type || :string] }
         end
 
         def ransackable_associations(auth_object = nil)
