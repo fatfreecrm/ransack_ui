@@ -16,10 +16,10 @@ module Ransack
           base.class_eval do
             class_attribute :_ransackers
             class_attribute :_ransackable_associations
-            class_attribute :_ransack_can_autocomplete
+            class_attribute :_ransack_autocompletes_through
             self._ransackers ||= {}
             self._ransackable_associations ||= []
-            self._ransack_can_autocomplete = false
+            self._ransack_autocompletes_through = nil
           end
         end
 
@@ -27,8 +27,8 @@ module Ransack
           self._ransackable_associations = associations
         end
 
-        def ransack_can_autocomplete
-          self._ransack_can_autocomplete = true
+        def ransack_autocompletes_through(controller)
+          self._ransack_autocompletes_through = controller
         end
 
         def ransackable_associations(auth_object = nil)

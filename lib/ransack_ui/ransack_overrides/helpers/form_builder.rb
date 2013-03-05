@@ -129,7 +129,7 @@ module Ransack
           if c == 'id'
             foreign_klass = object.context.traverse(base).model_name
             # Check that model can autocomplete. If not, skip this id column.
-            next nil unless foreign_klass.constantize._ransack_can_autocomplete
+            next nil unless foreign_klass.constantize._ransack_autocompletes_through.present?
             attribute_label = I18n.translate(foreign_klass, :default => foreign_klass)
           else
             foreign_klass = foreign_keys[c.to_sym]
@@ -149,7 +149,7 @@ module Ransack
 
           if foreign_klass
             # If field is a foreign key, set up 'data-ajax-*' attributes for auto-complete
-            controller = foreign_klass.tableize
+            controller = foreign_klass.constantize._ransack_autocompletes_through.name.tableize
             html_options[:'data-ajax-entity'] = I18n.translate(controller, :default => controller)
             if ajax_options[:url]
               html_options[:'data-ajax-url'] = ajax_options[:url].sub(':controller', controller)
