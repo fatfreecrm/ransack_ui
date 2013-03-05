@@ -16,12 +16,12 @@ module Ransack
         if bases.size > 1
           @template.select(
             @object_name, :name,
-            @template.grouped_options_for_select(attribute_collection_for_bases(bases), object.name),
+            @template.grouped_options_for_select(attribute_collection_for_bases(bases, options[:attributes]), object.name),
             objectify_options(options), @default_options.merge(html_options)
           )
         else
           @template.select(
-            @object_name, :name, attribute_collection_for_base(bases.first),
+            @object_name, :name, attribute_collection_for_base(bases.first, options[:attributes]),
             objectify_options(options), @default_options.merge(html_options)
           )
         end
@@ -34,7 +34,7 @@ module Ransack
         if bases.size > 1
           @template.select(
             @object_name, :name,
-            @template.grouped_options_for_select(attribute_collection_for_bases(bases), object.name),
+            @template.grouped_options_for_select(attribute_collection_for_bases(bases, options[:attributes]), object.name),
             objectify_options(options), @default_options.merge({:class => 'ransack_sort'}).merge(html_options)
           ) + @template.collection_select(
             @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
@@ -88,9 +88,9 @@ module Ransack
         )
       end
 
-      def attribute_collection_for_bases(bases)
+      def attribute_collection_for_bases(bases, attributes=nil)
         bases.map do |base|
-          if collection = attribute_collection_for_base(base)
+          if collection = attribute_collection_for_base(base, attributes)
             [
               Translate.association(base, :context => object.context),
               collection
@@ -119,8 +119,13 @@ module Ransack
         end
 
         object.context.searchable_attributes(base).map do |c, type|
+
           # Don't show 'id' column for base model
           next nil if base.blank? && c == 'id'
+
+          # If attributes are passed from the view, skip missing ones
+          base_name = base.blank? ? klass.class_name.underscore.to_sym : base.to_sym
+          next nil if (attributes && attributes[base_name] && !attributes[base_name].include?(c.to_sym))
 
           attribute = attr_from_base_and_column(base, c)
           attribute_label = Translate.attribute(attribute, :context => object.context)
