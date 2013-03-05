@@ -4,7 +4,7 @@ module RansackUI
       render 'ransack_ui/search', :options => options
     end
 
-    def link_to_add_fields(name, f, type, options)
+    def link_to_add_ransack_fields(name, f, type, options)
       new_object = f.object.send "build_#{type}"
       fields = f.send("#{type}_fields", new_object, :child_index => "new_#{type}") do |builder|
         render "ransack_ui/#{type.to_s}_fields", :f => builder, :options => options
@@ -19,7 +19,7 @@ module RansackUI
       end
     end
 
-    def link_to_remove_fields(name, f, options)
+    def link_to_remove_ransack_fields(name, f, options)
       if options[:theme].to_s == 'bootstrap'
         link_to '<i class="icon-remove icon-white"></i>'.html_safe, nil, :class => "remove_fields btn btn-mini btn-danger"
       else

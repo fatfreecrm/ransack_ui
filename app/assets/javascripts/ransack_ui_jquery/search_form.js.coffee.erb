@@ -4,8 +4,8 @@
 
     _create: ->
       el = @element
-      el.on 'click', '.add_fields',                $.proxy(@add_fields, this)
-      el.on 'click', '.remove_fields',             $.proxy(@remove_fields, this)
+      el.on 'click', '.add_ransack_fields',        $.proxy(@add_ransack_fields, this)
+      el.on 'click', '.remove_ransack_fields',     $.proxy(@remove_ransack_fields, this)
       el.on 'change', 'select.ransack_predicate',  $.proxy(@predicate_changed, this)
       el.on 'change', 'select.ransack_attribute',  $.proxy(@attribute_changed, this)
       el.on 'change', 'input.ransack_query_multi', $.proxy(@multi_query_changed, this)
@@ -299,7 +299,7 @@
       @element.css({ opacity: 0.4 })
       true
 
-    add_fields: (e) ->
+    add_ransack_fields: (e) ->
       target  = $(e.currentTarget)
       type    = target.data("fieldType")
       content = target.data("content")
@@ -319,7 +319,7 @@
       prev_container.find("select").change()
       false
 
-    remove_fields: (e) ->
+    remove_ransack_fields: (e) ->
       target    = $(e.currentTarget)
       container = target.closest('.fields')
       if (container.siblings().length > 1)
