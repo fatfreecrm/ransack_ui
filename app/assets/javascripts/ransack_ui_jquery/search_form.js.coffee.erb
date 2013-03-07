@@ -138,13 +138,13 @@
           # Add dummy 'multi' input for select2 if not already added
           if multi_input.length == 0
             # Set up multi-query input with fixed options, if present
-            query_input.val('')
+            #query_input.val('')
             options = selected_attribute.data('select-options')
             @setup_multi_query_input(target, query_input, multi_id, options)
 
           return
 
-        else           
+        else
           if multi_input.length
             # Otherwise, remove Select2 from multi-query input, and remove input.
             multi_input.select2('destroy').remove()
