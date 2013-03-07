@@ -44,7 +44,6 @@
         @set_option_predicates(base_id, available, column_type)
 
         # Set up Select2 for query input
-        query_input.val('')
         query_input.select2
           placeholder: "Search #{selected.data('ajax-entity')}"
           minimumInputLength: 1
@@ -59,6 +58,17 @@
               obj
             results: (data, page) ->
               {results: $.map(data, (text, id) -> {id: id, text: text}) }
+          initSelection: (element, callback) ->
+            id = $(element).val()
+            if (id != "")
+              $.ajax
+                url: selected.data('ajax-url'),
+                type: 'POST',
+                dataType: "json"
+                data: selected.data('ajax-key') + "=" + id
+              .done (data) ->
+                callback(data)
+            true
 
       # Handle columns with options detected from validates :inclusion
       else if selected.data('select-options') and Select2?
