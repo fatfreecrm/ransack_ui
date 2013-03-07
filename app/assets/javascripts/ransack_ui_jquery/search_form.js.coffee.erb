@@ -57,7 +57,7 @@
               obj[selected.data('ajax-key')] = query
               obj
             results: (data, page) ->
-              {results: $.map(data, (text, id) -> {id: id, text: text}) }
+              results: data
           initSelection: (element, callback) ->
             id = $(element).val()
             if (id != "")
