@@ -169,13 +169,16 @@
 
 
       # Hide query input when not needed
-      if p in ["true", "false", "blank", "present", "null", "not_null"]
+      if p in ["true", "false", "blank", "present", "null", "not_null", "false_value", "true_value"]
         # If Select2 is on query input, remove and set defaults
         if Select2? && @element.find("#s2id_#{base_id}v_0_value").length
           query_input.select2('destroy')
           query_input.val('')
 
-        query_input.val("true")
+        query_val = "true"
+        if (p == "false_value")
+          query_val = "false"
+        query_input.val(query_val)
         query_input.hide()
         query_input.parent().find('.ui-datepicker-trigger').hide()
       # Otherwise, reset query input and show datepicker trigger if present
