@@ -127,7 +127,7 @@ module Ransack
           next nil if base.blank? && c == 'id'
 
           # If attributes are passed from the view, skip missing ones
-          base_name = base.blank? ? klass.class_name.underscore.to_sym : base.to_sym
+          base_name = base.blank? ? klass.name.underscore.to_sym : base.to_sym
           next nil if (attributes && attributes[base_name] && !attributes[base_name].include?(c.to_sym))
 
           attribute = attr_from_base_and_column(base, c)
