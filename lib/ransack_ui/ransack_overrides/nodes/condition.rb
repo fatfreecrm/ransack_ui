@@ -9,6 +9,11 @@ module Ransack
         @is_default
       end
 
+      # Override to allow resetting of values if a single node is sent for validation
+      def set_boolean_value
+        @values = [Value.new(@context, true)]
+      end
+
       def arel_predicate
         predicates = attributes.map do |attr|
           attr.attr.send(predicate.arel_predicate, formatted_values_for_attribute(attr))
