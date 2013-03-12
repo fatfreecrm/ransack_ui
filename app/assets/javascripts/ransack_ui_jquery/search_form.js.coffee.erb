@@ -14,7 +14,6 @@
       containers = el.find('.filters')
       if Select2?
         @init_select2(containers)
-      @store_initial_predicates(containers)
 
       if $.ransack.button_group_select?
         @init_button_group_select(@element)
@@ -32,7 +31,7 @@
 
       base_id = target.attr('id').slice(0, -8)
       predicate_select  = @element.find("select##{base_id}p")
-      available = predicate_select.data['predicates']
+      available = Ransack.all_predicates
       query_input = $("input##{base_id}v_0_value")
 
       # Initialize datepicker if column is date/datetime/time
@@ -100,8 +99,8 @@
         # Remove all predicates, and add any supported predicates
         predicate_select.find('option').each (i, o) -> $(o).remove()
 
-        $.each available, (i, p) =>
-          [predicate, label] = [p[0], p[1]]
+        $.each available, (k, v) =>
+          [predicate, label] = [k, v]
 
           # Also allow compound predicates, unless column
           # is a date type. (No support for any/all on dates yet.)
@@ -166,7 +165,7 @@
 
             # If no fixed options, show query input
             query_input.val('').show()
-            
+
           # Handle fixed options - set up Select2 for single values if not already present
           if selected_attribute.data('select-options')
             if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length == 0
@@ -206,8 +205,8 @@
       # Remove all predicates, and add any supported predicates
       predicate_select.find('option').each (i, o) -> $(o).remove()
 
-      $.each available, (i, p) =>
-        [predicate, label] = [p[0], p[1]]
+      $.each available, (k, v) =>
+        [predicate, label] = [k, v]
 
         if predicate in Ransack.option_predicates
           # Get alternative predicate label depending on column type
@@ -327,7 +326,6 @@
       if $.ransack.button_group_select?
         @init_button_group_select(prev_container)
 
-      @store_initial_predicates(prev_container)
       # Fire change event on any new selects.
       prev_container.find("select").change()
       false
@@ -335,21 +333,8 @@
     remove_ransack_fields: (e) ->
       target    = $(e.currentTarget)
       container = target.closest('.fields')
-      if (container.siblings().length > 1)
-        container.remove()
-      else
-        container.parent().closest('.fields').remove()
+      container.remove()
       false
-
-    store_initial_predicates: (container) ->
-      # Store current predicates in data attribute
-      predicate_select = container.find('select.ransack_predicate:first')
-      unless predicate_select.data['predicates']
-        predicates = []
-        predicate_select.find('option').each (i, o) ->
-          o = $(o)
-          predicates.push [o.val(), o.text()]
-        predicate_select.data['predicates'] = predicates
 
     init_select2: (container) ->
       container.find('select.ransack_predicate').select2
