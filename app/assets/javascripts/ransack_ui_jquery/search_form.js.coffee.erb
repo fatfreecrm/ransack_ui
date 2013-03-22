@@ -6,6 +6,7 @@
       el = @element
       el.on 'click', '.add_ransack_fields',        $.proxy(@add_ransack_fields, this)
       el.on 'click', '.remove_ransack_fields',     $.proxy(@remove_ransack_fields, this)
+      el.on 'click', '.nest_ransack_fields',       $.proxy(@nest_ransack_fields, this)
       el.on 'change', 'select.ransack_predicate',  $.proxy(@predicate_changed, this)
       el.on 'change', 'select.ransack_attribute',  $.proxy(@attribute_changed, this)
       el.on 'change', 'input.ransack_query_multi', $.proxy(@multi_query_changed, this)
@@ -317,6 +318,30 @@
       content = target.data("content")
       new_id = new Date().getTime()
       regexp = new RegExp('new_' + type, 'g')
+      target.before content.replace(regexp, new_id)
+      prev_container = target.prev()
+
+      if Select2?
+        @init_select2(prev_container)
+
+      if $.ransack.button_group_select?
+        @init_button_group_select(prev_container)
+
+      # Fire change event on any new selects.
+      prev_container.find("select").change()
+      false
+
+    nest_ransack_fields: (e) ->
+      target  = $(e.currentTarget)
+      content = $('.add_ransack_fields:last').data("content")
+      new_id = new Date().getTime()
+      regexp = new RegExp('new_grouping', 'g')
+
+      object_name = target.closest('.fields').attr('data-object-name')
+      sanitized_object_name = object_name.replace(/\]\[|[^-a-zA-Z0-9:.]/g, '_').replace(/_$/, '')
+      content = content.replace /filter\[/g, object_name + "["
+      console.log sanitized_object_name
+      content = content.replace /new_grouping_/, sanitized_object_name + '_'
       target.before content.replace(regexp, new_id)
       prev_container = target.prev()
 
