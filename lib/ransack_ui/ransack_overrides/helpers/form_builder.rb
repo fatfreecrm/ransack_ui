@@ -103,6 +103,8 @@ module Ransack
       # { :model_name => [:column_1, :column2], :model_name_2 => [:column_1] }
       def attribute_collection_for_base(base, attributes=nil)
         klass = object.context.traverse(base)
+
+
         # If the foreign key is an array (composite_primary_keys) then skip
         foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
                          map_to({}) { |r, h| h[r.foreign_key.to_sym] = r.class_name if !r.foreign_key.is_a?(Array) }
@@ -138,10 +140,16 @@ module Ransack
             foreign_klass = object.context.traverse(base).model_name
             # Check that model can autocomplete. If not, skip this id column.
             next nil unless foreign_klass.constantize._ransack_autocompletes_through.present?
-            attribute_label = I18n.translate(foreign_klass, :default => foreign_klass)
+            # Try and find the attribute label at ransack.associations.subscriber.association otherwise default to the foreign klass name
+            attribute_label = I18n.translate(
+              base,
+              :scope => "ransack.associations.#{object.context.klass.name.demodulize.downcase}",
+              :default => I18n.translate(foreign_klass, :default => foreign_klass)
+            )
           else
             foreign_klass = foreign_keys[c.to_sym]
           end
+
 
           # Add column type as data attribute
           html_options = {:'data-type' => type}
