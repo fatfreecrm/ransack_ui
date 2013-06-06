@@ -16,8 +16,8 @@ module RansackUI
           self._ransackable_associations = associations
         end
 
-        def ransack_autocompletes_through(controller)
-          self._ransack_autocompletes_through = controller
+        def ransack_autocompletes_through(*source_args)
+          self._ransack_autocompletes_through = source_args
         end
 
         # Return array of attributes with [name, type]
