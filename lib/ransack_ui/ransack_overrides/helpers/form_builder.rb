@@ -8,20 +8,20 @@ module Ransack
         options[:include_blank] = true unless options.has_key?(:include_blank)
 
         # Set default associations set on model with 'has_ransackable_associations'
-        if options[:associations].nil?
-          options[:associations] = object.context.klass.ransackable_associations
-        end
+        options[:associations] = object.context.klass.ransackable_associations if options[:associations].nil?
+
+        attributes = options[:attributes].with_indifferent_access
 
         bases = [''] + association_array(options[:associations])
         if bases.size > 1
           @template.select(
             @object_name, :name,
-            @template.grouped_options_for_select(attribute_collection_for_bases(bases, options[:attributes]), object.name),
+            @template.grouped_options_for_select(attribute_collection_for_bases(bases, attributes), object.name),
             objectify_options(options), @default_options.merge(html_options)
           )
         else
           @template.select(
-            @object_name, :name, attribute_collection_for_base(bases.first, options[:attributes]),
+            @object_name, :name, attribute_collection_for_base(bases.first, attributes),
             objectify_options(options), @default_options.merge(html_options)
           )
         end
@@ -30,11 +30,15 @@ module Ransack
       def sort_select(options = {}, html_options = {})
         raise ArgumentError, "sort_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
         options[:include_blank] = true unless options.has_key?(:include_blank)
+
         bases = [''] + association_array(options[:associations])
+
+        attributes = options[:attributes].with_indifferent_access
+
         if bases.size > 1
           @template.select(
             @object_name, :name,
-            @template.grouped_options_for_select(attribute_collection_for_bases(bases, options[:attributes]), object.name),
+            @template.grouped_options_for_select(attribute_collection_for_bases(bases, attributes), object.name),
             objectify_options(options), @default_options.merge({:class => 'ransack_sort'}).merge(html_options)
           ) + @template.collection_select(
             @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
