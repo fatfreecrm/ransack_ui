@@ -167,15 +167,24 @@ module Ransack
             }.to_json
           end
 
-          if foreign_klass && foreign_klass.constantize._ransack_autocompletes_through
+          if foreign_klass && (autocomplete_source = foreign_klass.constantize._ransack_autocompletes_through rescue false)
+            url = case autocomplete_source.first
+                  when Class
+                    controller_path = autocomplete_source.first.controller_path
+                    if ajax_options[:url]
+                      ajax_options[:url].sub(':controller', controller_path)
+                    else
+                      "/#{controller_path}.json"
+                    end
+                  else
+                    route_name = autocomplete_source.first.to_s.gsub(/_(url|path)$/, '')
+                    controller_path = Rails.application.routes.named_routes[route_name].defaults[:controller]
+                    Rails.application.routes_url_helpers.send(*autocomplete_source)
+                  end
+
             # If field is a foreign key, set up 'data-ajax-*' attributes for auto-complete
-            controller = foreign_klass.constantize._ransack_autocompletes_through.controller_path
-            html_options[:'data-ajax-entity'] = I18n.translate(controller, :default => controller)
-            if ajax_options[:url]
-              html_options[:'data-ajax-url'] = ajax_options[:url].sub(':controller', controller)
-            else
-              html_options[:'data-ajax-url'] = "/#{controller}.json"
-            end
+            html_options[:'data-ajax-url'] = url
+            html_options[:'data-ajax-entity'] = I18n.translate(controller_path, :default => controller_path)
             html_options[:'data-ajax-type'] = ajax_options[:type] || 'GET'
             html_options[:'data-ajax-key']  = ajax_options[:key]  || 'query'
           end
