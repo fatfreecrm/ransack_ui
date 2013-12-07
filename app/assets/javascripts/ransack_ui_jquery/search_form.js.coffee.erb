@@ -46,7 +46,7 @@
       # Handle columns with options detected from validates :inclusion
       else if selected.data('select-options') and Select2?
         @set_option_predicates(base_id, available, column_type)
-        query_input.val('')
+        query_input.val('').removeAttr('data-value-label')
         query_input.select2
           data: selected.data('select-options')
           placeholder: "Please select a #{selected.val()}"
@@ -61,7 +61,7 @@
           # If Select2 is on query input, remove and set defaults
           if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length > 0
             query_input.select2('destroy')
-            query_input.val('')
+            query_input.val('').removeAttr('data-value-label')
             previous_val = ''
           else
             previous_val = predicate_select.val()
@@ -158,7 +158,7 @@
         # If Select2 is on query input, remove and set defaults
         if Select2? && @element.find("#s2id_#{base_id}v_0_value").length
           query_input.select2('destroy')
-          query_input.val('')
+          query_input.val('').removeAttr('data-value-label')
 
         query_input.val("true")
         query_input.hide()
@@ -168,7 +168,7 @@
         # Don't show query input if ajax auto complete is present on selected attribute
         unless p in ['eq', 'not_eq'] and selected_attribute.data('ajax-url')
           unless query_input.is(":visible")
-            query_input.val("")
+            query_input.val('').removeAttr('data-value-label')
             query_input.show()
             query_input.parent().find('.ui-datepicker-trigger').show()
 
