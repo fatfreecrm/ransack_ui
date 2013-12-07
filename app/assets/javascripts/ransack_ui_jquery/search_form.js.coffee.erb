@@ -40,35 +40,8 @@
 
       # Handle association columns with AJAX autocomplete
       if selected.data('ajax-url') and Select2?
-        controller = selected.data('controller')
         @set_option_predicates(base_id, available, column_type)
-
-        # Set up Select2 for query input
-        query_input.select2
-          placeholder: "Search #{selected.data('ajax-entity')}"
-          minimumInputLength: 1
-          allowClear: true
-          ajax:
-            url: selected.data('ajax-url')
-            dataType: 'json'
-            type: selected.data('ajax-type')
-            data: (query, page) ->
-              obj = {}
-              obj[selected.data('ajax-key')] = query
-              obj
-            results: (data, page) ->
-              {results: $.map(data, (text, id) -> {id: id, text: text}) }
-          initSelection: (element, callback) ->
-            id = $(element).val()
-            if (id != "")
-              $.ajax
-                url: selected.data('ajax-url'),
-                type: 'POST',
-                dataType: "json"
-                data: selected.data('ajax-key') + "=" + id
-              .done (data) ->
-                callback(data)
-            true
+        @setup_select2_association(query_input, selected)
 
       # Handle columns with options detected from validates :inclusion
       else if selected.data('select-options') and Select2?
@@ -154,6 +127,8 @@
           return
 
         else
+          query_input.show()
+
           if multi_input.length
             # Otherwise, remove Select2 from multi-query input, and remove input.
             multi_input.select2('destroy').remove()
@@ -163,8 +138,9 @@
             inputs = inputs.slice(1)
             inputs.remove()
 
-            # If no fixed options, show query input
-            query_input.val('').show()
+          # Handle association columns with AJAX autocomplete
+          if selected_attribute.data('ajax-url')
+            @setup_select2_association(query_input, selected_attribute)
 
           # Handle fixed options - set up Select2 for single values if not already present
           if selected_attribute.data('select-options')
@@ -189,10 +165,12 @@
         query_input.parent().find('.ui-datepicker-trigger').hide()
       # Otherwise, reset query input and show datepicker trigger if present
       else
-        unless query_input.is(":visible")
-          query_input.val("")
-          query_input.show()
-          query_input.parent().find('.ui-datepicker-trigger').show()
+        # Don't show query input if ajax auto complete is present on selected attribute
+        unless p in ['eq', 'not_eq'] and selected_attribute.data('ajax-url')
+          unless query_input.is(":visible")
+            query_input.val("")
+            query_input.show()
+            query_input.parent().find('.ui-datepicker-trigger').show()
 
 
     # Disables predicate choices and sets it to 'eq'
@@ -336,6 +314,28 @@
       else
         container.parent().closest('.fields').remove()
       false
+
+    setup_select2_association: (query_input, selected) ->
+      # Set up Select2 for query input
+      query_input.select2
+        placeholder: "Search #{selected.data('ajax-entity')}"
+        minimumInputLength: 1
+        allowClear: true
+        ajax:
+          url: selected.data('ajax-url')
+          dataType: 'json'
+          type: selected.data('ajax-type')
+          data: (query, page) ->
+            obj = {}
+            obj[selected.data('ajax-key')] = query
+            obj
+          results: (data, page) ->
+            {results: $.map(data, (text, id) -> {id: id, text: text}) }
+        initSelection: (element, callback) ->
+          label = $(element).data('value-label')
+          if label
+            data = {id: $(element).val(), text: label}
+            callback(data)
 
     store_initial_predicates: (container) ->
       # Store current predicates in data attribute

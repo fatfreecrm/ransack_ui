@@ -3,6 +3,8 @@ require 'ransack/helpers/form_builder'
 module Ransack
   module Helpers
     FormBuilder.class_eval do
+      @@cached_attribute_collection_for_base = {}
+
       def attribute_select(options = {}, html_options = {})
         raise ArgumentError, "attribute_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
         options[:include_blank] = true unless options.has_key?(:include_blank)
@@ -58,6 +60,44 @@ module Ransack
         end
       end
 
+      def value_text_field
+        # If value is present, and the attribute is an association,
+        # load the selected record and include the record name as a data attribute
+        value_label = nil
+        if object.value.present?
+          condition_attributes = parent_builder.object.attributes
+          if condition_attributes.any?
+            attribute = condition_attributes.first.name
+
+            # Search for an association that matches the given attribute
+            attribute_association = object.context.klass.ransackable_associations.find do |association|
+              attribute == "#{association}_id"
+            end
+
+            if attribute_association
+              klass = attribute_association.singularize.camelize.constantize rescue nil
+              if klass
+                value_object = klass.find_by_id(object.value)
+                if value_object
+                  value_label = if value_object.respond_to? :full_name
+                    value_object.full_name
+                  elsif value_object.respond_to? :name
+                    value_object.name
+                  end
+                end
+              end
+            end
+          end
+        end
+
+        html_options = {:style => "width: 200px;", :class => "ransack_query"}
+        if value_label.present?
+          html_options[:"data-value-label"] = value_label
+        end
+        text_field :value, html_options
+      end
+
+
       def predicate_keys(options)
         keys = options[:compounds] ? Predicate.names : Predicate.names.reject {|k| k.match(/_(any|all)$/)}
         if only = options[:only]
@@ -102,7 +142,7 @@ module Ransack
       def attribute_collection_for_base(base)
         klass = object.context.traverse(base)
         foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
-                         map_to({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
+                         each_with_object({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
 
         ajax_options = Ransack.options[:ajax_options] || {}
 
@@ -118,7 +158,7 @@ module Ransack
           end
         end
 
-        object.context.searchable_attributes(base).map do |c, type|
+        @@cached_attribute_collection_for_base[base] ||= object.context.searchable_attributes(base).map do |c, type|
           # Don't show 'id' column for base model
           next nil if base.blank? && c == 'id'
 
@@ -170,6 +210,5 @@ module Ransack
         nil
       end
     end
-
   end
 end

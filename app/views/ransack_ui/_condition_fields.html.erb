@@ -10,6 +10,6 @@
 
   <%= f.value_fields do |v| %>
     <span class="fields value" data-object-name="<%= f.object_name %>">
-    <%= v.text_field :value, :style => "width: 200px;", :class => "ransack_query" %>
+    <%= v.value_text_field %>
   <% end %>
 </div>
