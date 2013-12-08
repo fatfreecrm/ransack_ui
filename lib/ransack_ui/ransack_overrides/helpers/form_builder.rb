@@ -60,26 +60,33 @@ module Ransack
         end
       end
 
-      def value_text_field
-        # If value is present, and the attribute is an association,
-        # load the selected record and include the record name as a data attribute
-        value_label = nil
-        if object.value.present?
-          condition_attributes = parent_builder.object.attributes
-          if condition_attributes.any?
-            attribute = condition_attributes.first.name
-            klass_name = foreign_klass_for_attribute(attribute)
+      def labels_for_value_fields
+        labels = {}
 
-            if klass_name
-              klass = klass_name.constantize
+        object.groupings.each do |grouping|
+          grouping.conditions.each do |condition|
+            condition.values.each do |value|
+              # If value is present, and the attribute is an association,
+              # load the selected record and include the record name as a data attribute
+              if value.value.present?
+                condition_attributes = condition.attributes
+                if condition_attributes.any?
+                  attribute = condition_attributes.first.name
+                  klass_name = foreign_klass_for_attribute(attribute)
 
-              if klass
-                value_object = klass.find_by_id(object.value)
-                if value_object
-                  value_label = if value_object.respond_to? :full_name
-                    value_object.full_name
-                  elsif value_object.respond_to? :name
-                    value_object.name
+                  if klass_name
+                    klass = klass_name.constantize
+
+                    value_object = klass.find_by_id(value.value)
+                    if value_object
+                      labels[attribute] ||= {}
+
+                      if value_object.respond_to? :full_name
+                        labels[attribute][value.value] = value_object.full_name
+                      elsif value_object.respond_to? :name
+                        labels[attribute][value.value] = value_object.name
+                      end
+                    end
                   end
                 end
               end
@@ -87,11 +94,7 @@ module Ransack
           end
         end
 
-        html_options = {:style => "width: 200px;", :class => "ransack_query"}
-        if value_label.present?
-          html_options[:"data-value-label"] = value_label
-        end
-        text_field :value, html_options
+        labels
       end
 
 

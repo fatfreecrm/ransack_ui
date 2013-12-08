@@ -46,7 +46,7 @@
       # Handle columns with options detected from validates :inclusion
       else if selected.data('select-options') and Select2?
         @set_option_predicates(base_id, available, column_type)
-        query_input.val('').removeAttr('data-value-label')
+        query_input.val('')
         query_input.select2
           data: selected.data('select-options')
           placeholder: "Please select a #{selected.val()}"
@@ -61,7 +61,7 @@
           # If Select2 is on query input, remove and set defaults
           if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length > 0
             query_input.select2('destroy')
-            query_input.val('').removeAttr('data-value-label')
+            query_input.val('')
             previous_val = ''
           else
             previous_val = predicate_select.val()
@@ -107,6 +107,11 @@
       attribute_select  = @element.find("select##{base_id}a_0_name")
       selected_attribute = attribute_select.find('option:selected')
 
+      value_select2_id = "#s2id_#{base_id}v_0_value"
+      value_select2_multi_id = "#s2id_#{base_id}v_0_value_multi"
+      value_select2 = @element.find(value_select2_id)
+      value_select2_multi = @element.find(value_select2_multi_id)
+
       # We need to use a dummy input to handle multiple terms
       multi_id = query_input.attr('id') + '_multi'
       multi_input = @element.find("##{multi_id}")
@@ -114,23 +119,28 @@
       if Select2?
         # Turn query input into Select2 tag list when query accepts multiple values
         if p in ["in", "not_in"] || p.match(/_(all|any)$/)
-          # If Select2 is on query input, remove and set defaults
-          if @element.find("#s2id_#{base_id}v_0_value").length
-            query_input.select2('destroy')
-
           # Add dummy 'multi' input for select2 if not already added
-          if multi_input.length == 0
+          if multi_input.length == 0 && value_select2_multi.length == 0
             # Set up multi-query input with fixed options, if present
-            options = selected_attribute.data('select-options')
-            @setup_multi_query_input(target, query_input, multi_id, options)
+            @setup_multi_query_input(target, query_input, multi_id, selected_attribute)
+
+          # If Select2 is on query input, remove and set defaults
+          if value_select2.length
+            query_input.select2('destroy').hide()
 
           return
 
         else
           query_input.show()
 
+          # Otherwise, remove Select2 from multi-query input, and remove input.
           if multi_input.length
-            # Otherwise, remove Select2 from multi-query input, and remove input.
+            # Save label data from first value
+            if multi_input.select2('data') && multi_input.select2('data').length
+              multi_input_data = multi_input.select2('data').first()
+              Ransack.value_field_labels[selected_attribute.val()] ||= {}
+              Ransack.value_field_labels[selected_attribute.val()][multi_input_data.id] = multi_input_data.text
+
             multi_input.select2('destroy').remove()
             # Also remove all extra inputs
             base_name = multi_input.data('base-name')
@@ -140,7 +150,10 @@
 
           # Handle association columns with AJAX autocomplete
           if selected_attribute.data('ajax-url')
-            @setup_select2_association(query_input, selected_attribute)
+            if value_select2.length
+              query_input.hide()
+            else
+              @setup_select2_association(query_input, selected_attribute)
 
           # Handle fixed options - set up Select2 for single values if not already present
           if selected_attribute.data('select-options')
@@ -158,7 +171,7 @@
         # If Select2 is on query input, remove and set defaults
         if Select2? && @element.find("#s2id_#{base_id}v_0_value").length
           query_input.select2('destroy')
-          query_input.val('').removeAttr('data-value-label')
+          query_input.val('')
 
         query_input.val("true")
         query_input.hide()
@@ -168,7 +181,7 @@
         # Don't show query input if ajax auto complete is present on selected attribute
         unless p in ['eq', 'not_eq'] and selected_attribute.data('ajax-url')
           unless query_input.is(":visible")
-            query_input.val('').removeAttr('data-value-label')
+            query_input.val('')
             query_input.show()
             query_input.parent().find('.ui-datepicker-trigger').show()
 
@@ -233,17 +246,21 @@
         $.each values, (i, v) =>
           @add_query_input(target, base_name, i + 1, v)
 
-    setup_multi_query_input: (predicate_el, query_el, multi_id, options) ->
+    setup_multi_query_input: (predicate_el, query_input, multi_id, selected_attribute) ->
+      options = selected_attribute.data('select-options')
       base_name = predicate_el.attr('name').slice(0, -3) + '[v]'
-      query_el.after(
+      base_id = predicate_el.attr('id').slice(0, -1)
+      query_input.after(
         $('<input class="ransack_query_multi" id="' + multi_id + '" ' +
-          'style="width:' + (query_el.width() * 2) + 'px;" ' +
+          'style="width:' + (query_input.width() * 2) + 'px;" ' +
           'data-base-name="' + base_name + '" />'))
+
+      value_select2_id = "#s2id_#{base_id}v_0_value"
+      value_select2 = @element.find(value_select2_id)
 
       # Fetch all existing values
       inputs = @element.find("input[name^=\"#{base_name}\"]")
-      values = $.map inputs, (el) ->
-        el.value
+      values = $.map inputs, (el) -> el.value
       # Hide all query inputs
       inputs.hide()
 
@@ -251,32 +268,82 @@
         # Find newly created input and setup Select2
         multi_query = @element.find('#' + multi_id)
 
-        if options?
-          # Setup Select2 with fixed options
-          multi_query.select2
-            data: options
-            multiple: true
-            tokenSeparators: [',']
-            formatNoMatches:
-              if options
-                (t) -> "No matches found."
-              else
-                (t) -> "Add a search term"
-            initSelection: (element, callback) ->
-              data = []
-              unless element.val().trim() == ""
-                $(element.val().split(",")).each ->
-                  data.push {id: this, text: this}
-              callback(data)
+        # Handle association columns with AJAX autocomplete
+        if selected_attribute.data('ajax-url')
+          # Set label to single association label, if anything was selected
+          if value_select2.length && query_input.select2('data')
+            query_input_data = query_input.select2('data')
+            Ransack.value_field_labels[selected_attribute.val()] ||= {}
+            Ransack.value_field_labels[selected_attribute.val()][query_input_data.id] = query_input_data.text
+
+          @setup_select2_association(multi_query, selected_attribute, true)
+
         else
-          # Setup Select2 with tagging support (can create options)
-          multi_query.select2
-            tags: []
-            tokenSeparators: [',']
-            formatNoMatches: (t) ->
-              "Add a search term"
+          if options?
+            # Setup Select2 with fixed options
+            multi_query.select2
+              data: options
+              multiple: true
+              tokenSeparators: [',']
+              formatNoMatches:
+                if options
+                  (t) -> "No matches found."
+                else
+                  (t) -> "Add a search term"
+              initSelection: (element, callback) ->
+                data = []
+                unless element.val().trim() == ""
+                  $(element.val().split(",")).each ->
+                    data.push {id: this, text: this}
+                callback(data)
+          else
+            # Setup Select2 with tagging support (can create options)
+            multi_query.select2
+              tags: []
+              tokenSeparators: [',']
+              formatNoMatches: (t) ->
+                "Add a search term"
 
         multi_query.select2('val', values)
+
+    setup_select2_association: (query_input, selected_attribute, multiple = false) ->
+      selected_attribute_val = selected_attribute.val()
+      # Set up Select2 for query input
+      query_input.select2
+        placeholder: "Search #{selected_attribute.data('ajax-entity')}"
+        minimumInputLength: 1
+        allowClear: true
+        multiple: multiple
+        ajax:
+          url: selected_attribute.data('ajax-url')
+          dataType: 'json'
+          type: selected_attribute.data('ajax-type')
+          data: (query, page) ->
+            obj = {}
+            obj[selected_attribute.data('ajax-key')] = query
+            obj
+          results: (data, page) ->
+            {results: $.map(data, (text, id) -> {id: id, text: text}) }
+        initSelection: (element, callback) ->
+          if multiple
+            data = []
+            unless element.val().trim() == ""
+              $(element.val().split(",")).each ->
+                label = Ransack.value_field_labels[selected_attribute_val]?[this]
+                if label
+                  data.push {id: this, text: label}
+                else
+                  data.push {id: this, text: this}
+            callback(data)
+          else
+            id = $(element).val()
+            label = Ransack.value_field_labels[selected_attribute_val]?[id]
+            if label
+              data = {id: id, text: label}
+              callback(data)
+            else
+              # If no label could be found, clear value
+              element.select2('val', '')
 
     add_query_input: (base_input, base_name, id, value) ->
       base_input.after $('<input name="'+base_name+'['+id+'][value]" '+
@@ -314,28 +381,6 @@
       else
         container.parent().closest('.fields').remove()
       false
-
-    setup_select2_association: (query_input, selected) ->
-      # Set up Select2 for query input
-      query_input.select2
-        placeholder: "Search #{selected.data('ajax-entity')}"
-        minimumInputLength: 1
-        allowClear: true
-        ajax:
-          url: selected.data('ajax-url')
-          dataType: 'json'
-          type: selected.data('ajax-type')
-          data: (query, page) ->
-            obj = {}
-            obj[selected.data('ajax-key')] = query
-            obj
-          results: (data, page) ->
-            {results: $.map(data, (text, id) -> {id: id, text: text}) }
-        initSelection: (element, callback) ->
-          label = $(element).data('value-label')
-          if label
-            data = {id: $(element).val(), text: label}
-            callback(data)
 
     store_initial_predicates: (container) ->
       # Store current predicates in data attribute
