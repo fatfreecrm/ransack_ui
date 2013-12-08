@@ -3,7 +3,7 @@ require 'ransack/helpers/form_builder'
 module Ransack
   module Helpers
     FormBuilder.class_eval do
-      @@cached_attribute_collection_for_base = {}
+      @@cached_searchable_attributes_for_base = {}
 
       def attribute_select(options = {}, html_options = {})
         raise ArgumentError, "attribute_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
@@ -68,14 +68,11 @@ module Ransack
           condition_attributes = parent_builder.object.attributes
           if condition_attributes.any?
             attribute = condition_attributes.first.name
+            klass_name = foreign_klass_for_attribute(attribute)
 
-            # Search for an association that matches the given attribute
-            attribute_association = object.context.klass.ransackable_associations.find do |association|
-              attribute == "#{association}_id"
-            end
+            if klass_name
+              klass = klass_name.constantize
 
-            if attribute_association
-              klass = attribute_association.singularize.camelize.constantize rescue nil
               if klass
                 value_object = klass.find_by_id(object.value)
                 if value_object
@@ -141,9 +138,6 @@ module Ransack
 
       def attribute_collection_for_base(base)
         klass = object.context.traverse(base)
-        foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
-                         each_with_object({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
-
         ajax_options = Ransack.options[:ajax_options] || {}
 
         # Detect any inclusion validators to build list of options for a column
@@ -158,34 +152,25 @@ module Ransack
           end
         end
 
-        @@cached_attribute_collection_for_base[base] ||= object.context.searchable_attributes(base).map do |c, type|
-          # Don't show 'id' column for base model
-          next nil if base.blank? && c == 'id'
+        searchable_attributes_for_base(base).map do |attribute_data|
+          column = attribute_data[:column]
 
-          attribute = attr_from_base_and_column(base, c)
-          attribute_label = Translate.attribute(attribute, :context => object.context)
-
-          # Set model name as label for 'id' column on that model's table.
-          if c == 'id'
-            foreign_klass = object.context.traverse(base).model_name
-            # Check that model can autocomplete. If not, skip this id column.
-            next nil unless foreign_klass.constantize._ransack_can_autocomplete
-            attribute_label = I18n.translate(foreign_klass, :default => foreign_klass)
-          else
-            foreign_klass = foreign_keys[c.to_sym]
-          end
+          html_options = {}
 
           # Add column type as data attribute
-          html_options = {:'data-type' => type}
+          html_options[:'data-type'] = attribute_data[:type]
           # Set 'base' attribute if attribute is on base model
           html_options[:'data-root-model'] = true if base.blank?
+
           # Set column options if detected from inclusion validator
-          if column_select_options[c]
+          if column_select_options[column]
             # Format options as an array of hashes with id and text columns, for Select2
-            html_options[:'data-select-options'] = column_select_options[c].map {|id, text|
+            html_options[:'data-select-options'] = column_select_options[column].map {|id, text|
               {:id => id, :text => text}
             }.to_json
           end
+
+          foreign_klass = attribute_data[:foreign_klass]
 
           if foreign_klass
             # If field is a foreign key, set up 'data-ajax-*' attributes for auto-complete
@@ -201,13 +186,62 @@ module Ransack
           end
 
           [
-            attribute_label,
-            attribute,
+            attribute_data[:label],
+            attribute_data[:attribute],
             html_options
           ]
-        end.compact
+        end
       rescue UntraversableAssociationError => e
         nil
+      end
+
+
+      private
+
+      def searchable_attributes_for_base(base)
+        @@cached_searchable_attributes_for_base[base] ||= object.context.searchable_attributes(base).map do |column, type|
+          klass = object.context.traverse(base)
+          foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
+                           each_with_object({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
+
+          # Don't show 'id' column for base model
+          next nil if base.blank? && column == 'id'
+
+          attribute = attr_from_base_and_column(base, column)
+          attribute_label = Translate.attribute(attribute, :context => object.context)
+
+          # Set model name as label for 'id' column on that model's table.
+          if column == 'id'
+            foreign_klass = object.context.traverse(base).model_name
+            # Check that model can autocomplete. If not, skip this id column.
+            next nil unless foreign_klass.constantize._ransack_can_autocomplete
+            attribute_label = I18n.translate(foreign_klass, :default => foreign_klass)
+          else
+            foreign_klass = foreign_keys[column.to_sym]
+          end
+
+          attribute_data = {
+            label: attribute_label,
+            type: type,
+            column: column,
+            attribute: attribute
+          }
+          attribute_data[:foreign_klass] = foreign_klass if foreign_klass
+          attribute_data
+        end.compact
+      end
+
+      def foreign_klass_for_attribute(attribute)
+        associations = object.context.klass.ransackable_associations
+        bases = [''] + association_array(associations)
+
+        bases.each do |base|
+          searchable_attributes_for_base(base).each do |attribute_data|
+            if attribute == attribute_data[:attribute]
+              return attribute_data[:foreign_klass]
+            end
+          end
+        end
       end
     end
   end
