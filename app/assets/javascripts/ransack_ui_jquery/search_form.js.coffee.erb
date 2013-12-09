@@ -22,10 +22,12 @@
       # show spinner and disable the form when the search is underway
       el.find("form input:submit").click $.proxy(@form_submit, this)
 
-      # Fire change event for any existing attribute selects.
-      el.find(".filters select.ransack_attribute").change()
+      # Fire change event for any existing attribute selects,
+      # set initialize to true so that existing queries are not cleared.
+      el.find(".filters select.ransack_attribute").each (i, el) =>
+        @attribute_changed({currentTarget: el}, true)
 
-    attribute_changed: (e) ->
+    attribute_changed: (e, initialize = false) ->
       target = $(e.currentTarget)
       selected_attribute = target.find('option:selected')
       column_type = selected_attribute.data('type')
@@ -44,21 +46,17 @@
       # Initialize datepicker if column is date/datetime/time
       $.proxy(@init_datetimepicker, this)(base_id)
 
+      # Clear input value unless this is the first run
+      unless initialize
+        query_input.val('')
+
       # Destroy any query select2 inputs on attribute change and clear input
       if query_select2.length
-        query_input.val('').select2('destroy')
+        query_input.select2('destroy')
 
       # Destroy any multi-inputs on attribute change and clear input
-      else if multi_input.length
-        query_input.val('')
+      if multi_input.length
         @destroy_multi_input(multi_input, selected_attribute.val())
-
-      # If no query select2, no multi-input, and no query input, then
-      # previous attribute was a non-query predicate,
-      # so clear input value.
-      else if query_input.is(":hidden")
-        query_input.val('')
-
 
       # Handle association columns with AJAX autocomplete
       if selected_attribute.data('ajax-url') and Select2?
