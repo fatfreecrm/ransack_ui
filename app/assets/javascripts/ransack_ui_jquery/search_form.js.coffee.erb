@@ -59,13 +59,14 @@
       else if query_input.is(":hidden")
         query_input.val('')
 
+
       # Handle association columns with AJAX autocomplete
       if selected_attribute.data('ajax-url') and Select2?
         @set_option_predicates(base_id, available, column_type)
 
       # Handle columns with options detected from validates :inclusion
       else if selected_attribute.data('select-options') and Select2?
-        @set_option_predicates(base_id, available, column_type)
+        @set_option_predicates(base_id, available, column_type, true)
 
       # Handle regular columns
       else
@@ -201,17 +202,24 @@
 
 
     # Disables predicate choices and sets it to 'eq'
-    set_option_predicates: (base_id, available, column_type) ->
+    set_option_predicates: (base_id, available_predicates, column_type, include_column_predicates = false) ->
       predicate_select  = @element.find("select##{base_id}p")
       previous_val = predicate_select.val()
 
       # Remove all predicates, and add any supported predicates
       predicate_select.find('option').each (i, o) -> $(o).remove()
 
-      $.each available, (i, p) =>
+      allowed_predicates = $.merge([], Ransack.option_predicates)
+      # Include column predicates if the option was given.
+      # For example, a integer column will have fixed select options,
+      # but will also allow less than and greater than.
+      if include_column_predicates
+        allowed_predicates = allowed_predicates.concat(Ransack.type_predicates[column_type] || [])
+
+      $.each available_predicates, (i, p) =>
         [predicate, label] = [p[0], p[1]]
 
-        if predicate in Ransack.option_predicates
+        if predicate in allowed_predicates
           # Get alternative predicate label depending on column type
           label = @alt_predicate_label_or_default(predicate, column_type, label)
           predicate_select.append $("<option value=#{predicate}>#{label}</option>")
