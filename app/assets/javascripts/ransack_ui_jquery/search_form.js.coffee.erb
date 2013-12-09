@@ -36,23 +36,28 @@
       query_input = $("input##{base_id}v_0_value")
       multi_id = query_input.attr('id') + '_multi'
       multi_input = @element.find("##{multi_id}")
+      value_select2_id = "#s2id_#{base_id}v_0_value"
+      value_select2 = @element.find(value_select2_id)
 
       # Initialize datepicker if column is date/datetime/time
       $.proxy(@init_datetimepicker, this)(base_id)
 
-      # Always destroy any multi-inputs on attribute change
+      # Destroy any query select2 inputs on attribute change and clear input
+      if value_select2.length
+        query_input.val('').select2('destroy')
+
+      # Destroy any multi-inputs on attribute change and clear input
       if multi_input.length
+        query_input.val('')
         @destroy_multi_input(multi_input, selected_attribute.val())
 
       # Handle association columns with AJAX autocomplete
       if selected_attribute.data('ajax-url') and Select2?
         @set_option_predicates(base_id, available, column_type)
-        @setup_select2_association(query_input, selected_attribute)
 
       # Handle columns with options detected from validates :inclusion
       else if selected_attribute.data('select-options') and Select2?
         @set_option_predicates(base_id, available, column_type)
-        @setup_select2_options(query_input, selected_attribute)
 
       # Handle regular columns
       else
@@ -110,8 +115,8 @@
       selected_attribute = attribute_select.find('option:selected')
 
       value_select2_id = "#s2id_#{base_id}v_0_value"
-      value_select2_multi_id = "#s2id_#{base_id}v_0_value_multi"
       value_select2 = @element.find(value_select2_id)
+      value_select2_multi_id = "#s2id_#{base_id}v_0_value_multi"
       value_select2_multi = @element.find(value_select2_multi_id)
 
       # We need to use a dummy input to handle multiple terms
@@ -309,12 +314,12 @@
         initSelection: (element, callback) ->
           data = []
           unless element.val().trim() == ""
-            $(element.val().split(",")).each ->
-              label = Ransack.value_field_labels[selected_attribute_val]?[this]
+            $(element.val().split(",")).each (i, val) ->
+              label = Ransack.value_field_labels[selected_attribute_val]?[val]
               if label
-                data.push {id: this, text: label}
+                data.push {id: val, text: label}
               else
-                data.push {id: this, text: this}
+                data.push {id: val, text: val}
           if data.length
             callback(multiple and data or data[0])
           else
