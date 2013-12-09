@@ -351,7 +351,7 @@
     setup_select2_options: (query_input, selected_attribute, multiple = false) ->
       query_input.select2
         data: selected_attribute.data('select-options')
-        placeholder: "Please select a #{selected_attribute.val()}"
+        placeholder: "Please select a #{selected_attribute.text()}"
         allowClear: true
         multiple: multiple
         tokenSeparators: [',']
