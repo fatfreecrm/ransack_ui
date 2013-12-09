@@ -22,35 +22,37 @@
       # show spinner and disable the form when the search is underway
       el.find("form input:submit").click $.proxy(@form_submit, this)
 
-      # Fire change event for any existing selects.
-      el.find(".filters select").change()
+      # Fire change event for any existing attribute selects.
+      el.find(".filters select.ransack_attribute").change()
 
     attribute_changed: (e) ->
       target = $(e.currentTarget)
-      selected = target.find('option:selected')
-      column_type = selected.data('type')
+      selected_attribute = target.find('option:selected')
+      column_type = selected_attribute.data('type')
 
       base_id = target.attr('id').slice(0, -8)
       predicate_select  = @element.find("select##{base_id}p")
       available = predicate_select.data['predicates']
       query_input = $("input##{base_id}v_0_value")
+      multi_id = query_input.attr('id') + '_multi'
+      multi_input = @element.find("##{multi_id}")
 
       # Initialize datepicker if column is date/datetime/time
       $.proxy(@init_datetimepicker, this)(base_id)
 
+      # Always destroy any multi-inputs on attribute change
+      if multi_input.length
+        @destroy_multi_input(multi_input, selected_attribute.val())
+
       # Handle association columns with AJAX autocomplete
-      if selected.data('ajax-url') and Select2?
+      if selected_attribute.data('ajax-url') and Select2?
         @set_option_predicates(base_id, available, column_type)
-        @setup_select2_association(query_input, selected)
+        @setup_select2_association(query_input, selected_attribute)
 
       # Handle columns with options detected from validates :inclusion
-      else if selected.data('select-options') and Select2?
+      else if selected_attribute.data('select-options') and Select2?
         @set_option_predicates(base_id, available, column_type)
-        query_input.val('')
-        query_input.select2
-          data: selected.data('select-options')
-          placeholder: "Please select a #{selected.val()}"
-          allowClear: true
+        @setup_select2_options(query_input, selected_attribute)
 
       # Handle regular columns
       else
@@ -92,8 +94,8 @@
         if Select2?
           predicate_select.select2('val', previous_val)
 
-        # Run predicate_changed callback
-        predicate_select.change()
+      # Run predicate_changed callback
+      predicate_select.change()
 
       return true
 
@@ -141,12 +143,7 @@
               Ransack.value_field_labels[selected_attribute.val()] ||= {}
               Ransack.value_field_labels[selected_attribute.val()][multi_input_data.id] = multi_input_data.text
 
-            multi_input.select2('destroy').remove()
-            # Also remove all extra inputs
-            base_name = multi_input.data('base-name')
-            inputs = @element.find("input[name^=\"#{base_name}\"]")
-            inputs = inputs.slice(1)
-            inputs.remove()
+            @destroy_multi_input(multi_input, selected_attribute.val())
 
           # Handle association columns with AJAX autocomplete
           if selected_attribute.data('ajax-url')
@@ -157,11 +154,10 @@
 
           # Handle fixed options - set up Select2 for single values if not already present
           if selected_attribute.data('select-options')
-            if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length == 0
-              query_input.select2
-                data: selected_attribute.data('select-options')
-                placeholder: "Please select a #{selected_attribute.val()}"
-                allowClear: true
+            if value_select2.length
+              query_input.hide()
+            else
+              @setup_select2_options(query_input, selected_attribute)
 
             return
 
@@ -247,7 +243,6 @@
           @add_query_input(target, base_name, i + 1, v)
 
     setup_multi_query_input: (predicate_el, query_input, multi_id, selected_attribute) ->
-      options = selected_attribute.data('select-options')
       base_name = predicate_el.attr('name').slice(0, -3) + '[v]'
       base_id = predicate_el.attr('id').slice(0, -1)
       query_input.after(
@@ -279,23 +274,10 @@
           @setup_select2_association(multi_query, selected_attribute, true)
 
         else
-          if options?
-            # Setup Select2 with fixed options
-            multi_query.select2
-              data: options
-              multiple: true
-              tokenSeparators: [',']
-              formatNoMatches:
-                if options
-                  (t) -> "No matches found."
-                else
-                  (t) -> "Add a search term"
-              initSelection: (element, callback) ->
-                data = []
-                unless element.val().trim() == ""
-                  $(element.val().split(",")).each ->
-                    data.push {id: this, text: this}
-                callback(data)
+          if selected_attribute.data('select-options')
+            # Setup Select2 with fixed multiple options
+            @setup_select2_options(multi_query, selected_attribute, true)
+
           else
             # Setup Select2 with tagging support (can create options)
             multi_query.select2
@@ -325,29 +307,57 @@
           results: (data, page) ->
             {results: $.map(data, (text, id) -> {id: id, text: text}) }
         initSelection: (element, callback) ->
-          if multiple
-            data = []
-            unless element.val().trim() == ""
-              $(element.val().split(",")).each ->
-                label = Ransack.value_field_labels[selected_attribute_val]?[this]
-                if label
-                  data.push {id: this, text: label}
-                else
-                  data.push {id: this, text: this}
-            callback(data)
+          data = []
+          unless element.val().trim() == ""
+            $(element.val().split(",")).each ->
+              label = Ransack.value_field_labels[selected_attribute_val]?[this]
+              if label
+                data.push {id: this, text: label}
+              else
+                data.push {id: this, text: this}
+          if data.length
+            callback(multiple and data or data[0])
           else
-            id = $(element).val()
-            label = Ransack.value_field_labels[selected_attribute_val]?[id]
-            if label
-              data = {id: id, text: label}
-              callback(data)
-            else
-              # If no label could be found, clear value
-              element.select2('val', '')
+            # If no label could be found, clear value
+            element.select2('val', '')
+
+    setup_select2_options: (query_input, selected_attribute, multiple = false) ->
+      query_input.select2
+        data: selected_attribute.data('select-options')
+        placeholder: "Please select a #{selected_attribute.val()}"
+        allowClear: true
+        multiple: multiple
+        tokenSeparators: [',']
+        formatNoMatches:
+          if selected_attribute.data('select-options')
+            (t) -> "No matches found."
+          else
+            (t) -> "Add a search term"
+        initSelection: (element, callback) ->
+          data = []
+          unless element.val().trim() == ""
+            $(element.val().split(",")).each (i, val) ->
+              selected_attribute.data('select-options').each (option, i) ->
+                if option.id == val
+                  data.push {id: option.id, text: option.text}
+                  return false  # Break out of inner each loop
+
+          if data.length
+            callback(multiple and data or data[0])
+          else
+            element.select2('val', '')
 
     add_query_input: (base_input, base_name, id, value) ->
       base_input.after $('<input name="'+base_name+'['+id+'][value]" '+
                          'value="'+value+'" style="display:none;" />')
+
+    destroy_multi_input: (multi_input, selected_attribute_val) ->
+      multi_input.select2('destroy').remove()
+      # Also remove all extra inputs
+      base_name = multi_input.data('base-name')
+      inputs = @element.find("input[name^=\"#{base_name}\"]")
+      inputs = inputs.slice(1)
+      inputs.remove()
 
     form_submit: (e) ->
       @element.css({ opacity: 0.4 })
@@ -426,7 +436,7 @@
     init_datetimepicker: (base_id) ->
       if $.ui?.timepicker?
         query_input = @element.find("input##{base_id}v_0_value")
-        selected_attr = @element.find("select##{base_id}a_0_name option:selected")
+        selected_attribute = @element.find("select##{base_id}a_0_name option:selected")
 
         # Clear any datepicker from query input first
         query_input.datepicker('destroy')
@@ -442,7 +452,7 @@
           onClose: (date) -> $(this).val(date)
 
         # Show datepicker button for dates
-        switch selected_attr.data('type')
+        switch selected_attribute.data('type')
           when "date"
             query_input.datepicker(datepicker_options)
           when "datetime"
