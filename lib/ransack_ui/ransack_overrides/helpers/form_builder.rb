@@ -3,7 +3,8 @@ require 'ransack/helpers/form_builder'
 module Ransack
   module Helpers
     FormBuilder.class_eval do
-      @@cached_searchable_attributes_for_base = {}
+      cattr_accessor :cached_searchable_attributes_for_base
+      self.cached_searchable_attributes_for_base = {}
 
       def attribute_select(options = {}, html_options = {})
         raise ArgumentError, "attribute_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
@@ -205,7 +206,7 @@ module Ransack
         cache_prefix = object.context.klass.table_name
         cache_key = base.blank? ? cache_prefix : [cache_prefix, base].join('_')
 
-        @@cached_searchable_attributes_for_base[cache_key] ||= object.context.searchable_attributes(base).map do |column, type|
+        self.class.cached_searchable_attributes_for_base[cache_key] ||= object.context.searchable_attributes(base).map do |column, type|
           klass = object.context.traverse(base)
           foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
                            each_with_object({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
