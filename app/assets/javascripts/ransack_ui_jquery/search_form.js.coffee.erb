@@ -36,20 +36,28 @@
       query_input = $("input##{base_id}v_0_value")
       multi_id = query_input.attr('id') + '_multi'
       multi_input = @element.find("##{multi_id}")
-      value_select2_id = "#s2id_#{base_id}v_0_value"
-      value_select2 = @element.find(value_select2_id)
+      query_select2_id = "#s2id_#{base_id}v_0_value"
+      query_select2 = @element.find(query_select2_id)
+      predicate_select2_id = "#s2id_#{base_id}p"
+      predicate_select2 = @element.find(predicate_select2_id)
 
       # Initialize datepicker if column is date/datetime/time
       $.proxy(@init_datetimepicker, this)(base_id)
 
       # Destroy any query select2 inputs on attribute change and clear input
-      if value_select2.length
+      if query_select2.length
         query_input.val('').select2('destroy')
 
       # Destroy any multi-inputs on attribute change and clear input
-      if multi_input.length
+      else if multi_input.length
         query_input.val('')
         @destroy_multi_input(multi_input, selected_attribute.val())
+
+      # If no query select2, no multi-input, and no query input, then
+      # previous attribute was a non-query predicate,
+      # so clear input value.
+      else if query_input.is(":hidden")
+        query_input.val('')
 
       # Handle association columns with AJAX autocomplete
       if selected_attribute.data('ajax-url') and Select2?
@@ -62,11 +70,10 @@
       # Handle regular columns
       else
         if Select2?
-          predicate_select2 = @element.find("#s2id_#{base_id}p")
           predicate_select2.select2("enable")
 
           # If Select2 is on query input, remove and set defaults
-          if (query_select2 = @element.find("#s2id_#{base_id}v_0_value")).length > 0
+          if query_select2.length > 0
             query_input.select2('destroy')
             query_input.val('')
             previous_val = ''
@@ -114,32 +121,46 @@
       attribute_select  = @element.find("select##{base_id}a_0_name")
       selected_attribute = attribute_select.find('option:selected')
 
-      value_select2_id = "#s2id_#{base_id}v_0_value"
-      value_select2 = @element.find(value_select2_id)
-      value_select2_multi_id = "#s2id_#{base_id}v_0_value_multi"
-      value_select2_multi = @element.find(value_select2_multi_id)
+      query_select2_id = "#s2id_#{base_id}v_0_value"
+      query_select2 = @element.find(query_select2_id)
+      query_select2_multi_id = "#s2id_#{base_id}v_0_value_multi"
+      query_select2_multi = @element.find(query_select2_multi_id)
+
+      no_query_predicates = ["true", "false", "blank", "present", "null", "not_null"]
 
       # We need to use a dummy input to handle multiple terms
       multi_id = query_input.attr('id') + '_multi'
       multi_input = @element.find("##{multi_id}")
 
+      # If query was previously hidden, clear query input
+      if query_select2.length == 0 && multi_input.length == 0 && query_input.is(":hidden")
+        query_input.val('')
+
+      # Hide query input when not needed
+      if p in no_query_predicates
+        # If Select2 is on query input, remove and set defaults
+        if Select2? && query_select2.length
+          query_input.select2('destroy')
+
+        query_input.val("true")
+        query_input.hide()
+        query_input.parent().find('.ui-datepicker-trigger').hide()
+
       if Select2?
         # Turn query input into Select2 tag list when query accepts multiple values
         if p in ["in", "not_in"] || p.match(/_(all|any)$/)
           # Add dummy 'multi' input for select2 if not already added
-          if multi_input.length == 0 && value_select2_multi.length == 0
+          if multi_input.length == 0 && query_select2_multi.length == 0
             # Set up multi-query input with fixed options, if present
             @setup_multi_query_input(target, query_input, multi_id, selected_attribute)
 
           # If Select2 is on query input, remove and set defaults
-          if value_select2.length
+          if query_select2.length
             query_input.select2('destroy').hide()
 
           return
 
         else
-          query_input.show()
-
           # Otherwise, remove Select2 from multi-query input, and remove input.
           if multi_input.length
             # Save label data from first value
@@ -150,35 +171,27 @@
 
             @destroy_multi_input(multi_input, selected_attribute.val())
 
-          # Handle association columns with AJAX autocomplete
-          if selected_attribute.data('ajax-url')
-            if value_select2.length
-              query_input.hide()
-            else
-              @setup_select2_association(query_input, selected_attribute)
+          if p not in no_query_predicates
+            query_input.show()
 
-          # Handle fixed options - set up Select2 for single values if not already present
-          if selected_attribute.data('select-options')
-            if value_select2.length
-              query_input.hide()
-            else
-              @setup_select2_options(query_input, selected_attribute)
+            # Handle association columns with AJAX autocomplete
+            if selected_attribute.data('ajax-url')
+              if query_select2.length
+                query_input.hide()
+              else
+                @setup_select2_association(query_input, selected_attribute)
 
-            return
+            # Handle fixed options - set up Select2 for single values if not already present
+            if selected_attribute.data('select-options')
+              if query_select2.length
+                query_input.hide()
+              else
+                @setup_select2_options(query_input, selected_attribute)
 
-
-      # Hide query input when not needed
-      if p in ["true", "false", "blank", "present", "null", "not_null"]
-        # If Select2 is on query input, remove and set defaults
-        if Select2? && @element.find("#s2id_#{base_id}v_0_value").length
-          query_input.select2('destroy')
-          query_input.val('')
-
-        query_input.val("true")
-        query_input.hide()
-        query_input.parent().find('.ui-datepicker-trigger').hide()
       # Otherwise, reset query input and show datepicker trigger if present
-      else
+      if p not in no_query_predicates
+        return if selected_attribute.data('select-options')
+
         # Don't show query input if ajax auto complete is present on selected attribute
         unless p in ['eq', 'not_eq'] and selected_attribute.data('ajax-url')
           unless query_input.is(":visible")
@@ -255,8 +268,8 @@
           'style="width:' + (query_input.width() * 2) + 'px;" ' +
           'data-base-name="' + base_name + '" />'))
 
-      value_select2_id = "#s2id_#{base_id}v_0_value"
-      value_select2 = @element.find(value_select2_id)
+      query_select2_id = "#s2id_#{base_id}v_0_value"
+      query_select2 = @element.find(query_select2_id)
 
       # Fetch all existing values
       inputs = @element.find("input[name^=\"#{base_name}\"]")
@@ -271,7 +284,7 @@
         # Handle association columns with AJAX autocomplete
         if selected_attribute.data('ajax-url')
           # Set label to single association label, if anything was selected
-          if value_select2.length && query_input.select2('data')
+          if query_select2.length && query_input.select2('data')
             query_input_data = query_input.select2('data')
             Ransack.value_field_labels[selected_attribute.val()] ||= {}
             Ransack.value_field_labels[selected_attribute.val()][query_input_data.id] = query_input_data.text
