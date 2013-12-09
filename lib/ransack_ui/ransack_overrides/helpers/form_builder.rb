@@ -202,7 +202,10 @@ module Ransack
       private
 
       def searchable_attributes_for_base(base)
-        @@cached_searchable_attributes_for_base[base] ||= object.context.searchable_attributes(base).map do |column, type|
+        cache_prefix = object.context.klass.table_name
+        cache_key = base.blank? ? cache_prefix : [cache_prefix, base].join('_')
+
+        @@cached_searchable_attributes_for_base[cache_key] ||= object.context.searchable_attributes(base).map do |column, type|
           klass = object.context.traverse(base)
           foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
                            each_with_object({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
