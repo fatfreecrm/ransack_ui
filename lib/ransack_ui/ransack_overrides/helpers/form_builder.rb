@@ -149,7 +149,7 @@ module Ransack
             v.attributes.each do |a|
               # Try to translate options from activerecord.attribute_options.<model>.<attribute>
               hash[a.to_s] = v.send(:delimiter).each_with_object({}) do |o, options|
-                options[o] = I18n.translate("activerecord.attribute_options.#{klass.to_s.downcase}.#{a}.#{o}", :default => o.to_s)
+                options[o] = I18n.translate("activerecord.attribute_options.#{klass.to_s.downcase}.#{a}.#{o}", :default => o.to_s.titleize)
               end
             end
           end

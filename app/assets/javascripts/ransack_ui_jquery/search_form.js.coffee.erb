@@ -202,7 +202,7 @@
 
 
     # Disables predicate choices and sets it to 'eq'
-    set_option_predicates: (base_id, available_predicates, column_type, include_column_predicates = false) ->
+    set_option_predicates: (base_id, available_predicates, column_type, include_number_predicates = false) ->
       predicate_select  = @element.find("select##{base_id}p")
       previous_val = predicate_select.val()
 
@@ -210,10 +210,11 @@
       predicate_select.find('option').each (i, o) -> $(o).remove()
 
       allowed_predicates = $.merge([], Ransack.option_predicates)
-      # Include column predicates if the option was given.
+
+      # Include number predicates if the option was given.
       # For example, a integer column will have fixed select options,
       # but will also allow less than and greater than.
-      if include_column_predicates
+      if column_type in ['integer', 'float', 'decimal'] && include_number_predicates
         allowed_predicates = allowed_predicates.concat(Ransack.type_predicates[column_type] || [])
 
       $.each available_predicates, (i, p) =>
