@@ -156,6 +156,10 @@ module Ransack
           end
         end
 
+        if klass.respond_to?(:ransack_column_select_options)
+          column_select_options.merge!(klass.ransack_column_select_options)
+        end
+
         searchable_attributes_for_base(base).map do |attribute_data|
           column = attribute_data[:column]
 
