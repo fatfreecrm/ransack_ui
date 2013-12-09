@@ -413,8 +413,16 @@
         placeholder: "Select a Field"
         allowClear: true
         formatSelection: (object, container) ->
+          # If initializing and element is not present,
+          # search for option element in original select tag
+          if !object.element
+            this.element.find('option').each (i, option) ->
+              if option.value == object.id
+                object.element = option
+                return false
+
           # Return 'Model: field' unless column is on root model
-          if !object.element || $(object.element).data('root-model')
+          if $(object.element).data('root-model')
             object.text
           else
             group_label = $(object.element).parent().attr('label')
