@@ -149,7 +149,9 @@ module Ransack
           if v.is_a? ActiveModel::Validations::InclusionValidator
             v.attributes.each do |a|
               # Try to translate options from activerecord.attribute_options.<model>.<attribute>
-              hash[a.to_s] = v.send(:delimiter).each_with_object({}) do |o, options|
+              inclusions = v.send(:delimiter)
+              inclusions = inclusions.call if inclusions.respond_to?(:call) # handle lambda
+              hash[a.to_s] = inclusions.each_with_object({}) do |o, options|
                 options[o.to_s] = I18n.translate("activerecord.attribute_options.#{klass.to_s.downcase}.#{a}.#{o}", :default => o.to_s.titleize)
               end
             end
