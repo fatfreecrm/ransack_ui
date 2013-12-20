@@ -171,7 +171,8 @@
             @destroy_multi_input(multi_input, selected_attribute.val())
 
           if p not in no_query_predicates
-            query_input.show()
+            #query_input.show()
+            query_input.css('display', '')
 
             # Handle association columns with AJAX autocomplete
             if selected_attribute.data('ajax-url')
@@ -195,7 +196,8 @@
         unless p in ['eq', 'not_eq'] and selected_attribute.data('ajax-url')
           unless query_input.is(":visible")
             query_input.val('')
-            query_input.show()
+            #query_input.show()
+            query_input.css('display', '')
             query_input.parent().find('.ui-datepicker-trigger').show()
 
 
@@ -270,9 +272,11 @@
     setup_multi_query_input: (predicate_el, query_input, multi_id, selected_attribute) ->
       base_name = predicate_el.attr('name').slice(0, -3) + '[v]'
       base_id = predicate_el.attr('id').slice(0, -1)
+      width = query_input.width() * 2
+      width = 200 if width < 10
       query_input.after(
         $('<input class="ransack_query_multi" id="' + multi_id + '" ' +
-          'style="width:' + (query_input.width() * 2) + 'px;" ' +
+          'style="width:' + width + 'px;" ' +
           'data-base-name="' + base_name + '" />'))
 
       query_select2_id = "#s2id_#{base_id}v_0_value"
