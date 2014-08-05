@@ -16,7 +16,9 @@ module Ransack
 
       def arel_predicate
         predicates = attributes.map do |attr|
-          attr.attr.send(predicate.arel_predicate, formatted_values_for_attribute(attr))
+          attr.attr.send(
+            predicate.arel_predicate, formatted_values_for_attribute(attr)
+          )
         end
         if predicates.size > 1
           case combinator
