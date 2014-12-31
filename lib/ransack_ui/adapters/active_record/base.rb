@@ -37,6 +37,9 @@ module RansackUI
           end
         end
 
+        def ransortable_attributes(auth_object = nil)
+          ransackable_attributes(auth_object).map(&:first)
+        end
       end
     end
   end
