@@ -202,6 +202,7 @@
     # Dsiables predicate choices and sets it to 'eq'
     set_option_predicates: (base_id, available, column_type) ->
       predicate_select  = @element.find("select##{base_id}p")
+      previous_val = predicate_select.val()
 
       # Remove all predicates, and add any supported predicates
       predicate_select.find('option').each (i, o) -> $(o).remove()
@@ -214,9 +215,8 @@
           label = @alt_predicate_label_or_default(predicate, column_type, label)
           predicate_select.append $("<option value=#{predicate}>#{label}</option>")
 
-      if Select2?
-        predicate_select2 = @element.find("#s2id_#{base_id}p")
-        predicate_select2.select2('val', 'eq')
+      # Select first predicate if current selection is invalid
+      predicate_select.select2('val', previous_val)
 
     # Attempts to find a predicate translation for the specific column type,
     # or returns the default label.
