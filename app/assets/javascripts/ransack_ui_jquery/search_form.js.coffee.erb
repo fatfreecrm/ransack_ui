@@ -216,7 +216,8 @@
           predicate_select.append $("<option value=#{predicate}>#{label}</option>")
 
       # Select first predicate if current selection is invalid
-      predicate_select.select2('val', previous_val)
+      if Select2?
+        predicate_select.select2('val', previous_val)
 
     # Attempts to find a predicate translation for the specific column type,
     # or returns the default label.
