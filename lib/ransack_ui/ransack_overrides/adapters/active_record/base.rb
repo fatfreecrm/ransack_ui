@@ -8,7 +8,7 @@ module Ransack
         # (Default to :string type for ransackers)
         def ransackable_attributes(auth_object = nil)
           columns.map{|c| [c.name, c.type] } +
-          _ransackers.keys.map {|k,v| [k, v.type || :string] }
+          _ransackers.map {|k,v| [k, v.type || :string] }
         end
 
         def self.extended(base)
