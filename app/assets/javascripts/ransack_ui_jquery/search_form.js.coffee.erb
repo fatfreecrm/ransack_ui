@@ -73,7 +73,7 @@
       # Handle columns with options detected from validates :inclusion
       else if selected.data('select-options') and Select2?
         @set_option_predicates(base_id, available, column_type)
-        query_input.val('')
+        # query_input.val('')
         query_input.select2
           data: selected.data('select-options')
           placeholder: "Please select a #{selected.val()}"
