@@ -178,7 +178,10 @@ module Ransack
                     end
                   else
                     route_name = autocomplete_source.first.to_s.gsub(/_(url|path)$/, '')
-                    controller_path = Rails.application.routes.named_routes[route_name].defaults[:controller]
+                    unless route = Rails.application.routes.named_routes[route_name]
+                      raise ActionController::RoutingError, "autocomplete route not found for #{route_name}"
+                    end
+                    controller_path = route.defaults[:controller]
                     Rails.application.routes_url_helpers.send(*autocomplete_source)
                   end
 
