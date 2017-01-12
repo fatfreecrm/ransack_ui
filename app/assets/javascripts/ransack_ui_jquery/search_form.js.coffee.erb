@@ -13,7 +13,7 @@
 
       # Store initial predicates and set up Select2 on select lists in .filters
       containers = el.find('.filters')
-      if Select2?
+      if jQuery.fn.select2?
         @init_select2(containers)
 
       if $.ransack.button_group_select?
@@ -81,7 +81,7 @@
 
       # Handle regular columns
       else
-        if Select2?
+        if jQuery.fn.select2?
           predicate_select2 = @element.find("#s2id_#{base_id}p")
           predicate_select2.select2("enable")
 
@@ -116,7 +116,7 @@
             predicate_select.append $("<option value=#{predicate}>#{label}</option>")
 
         # Select first predicate if current selection is invalid
-        if Select2?
+        if jQuery.fn.select2?
           predicate_select.select2('val', previous_val)
 
         # Run predicate_changed callback
@@ -138,7 +138,7 @@
       multi_id = query_input.attr('id') + '_multi'
       multi_input = @element.find("##{multi_id}")
 
-      if Select2?
+      if jQuery.fn.select2?
         # Turn query input into Select2 tag list when query accepts multiple values
         if p in ["in", "not_in"] || p.match(/_(all|any)$/)
           # If Select2 is on query input, remove and set defaults
@@ -181,7 +181,7 @@
       # Hide query input when not needed
       if p in ["true", "false", "blank", "present", "null", "not_null", "false_value", "true_value"]
         # If Select2 is on query input, remove and set defaults
-        if Select2? && @element.find("#s2id_#{base_id}v_0_value").length
+        if jQuery.fn.select2? && @element.find("#s2id_#{base_id}v_0_value").length
           query_input.select2('destroy')
           query_input.val('')
 
@@ -216,7 +216,7 @@
           predicate_select.append $("<option value=#{predicate}>#{label}</option>")
 
       # Select first predicate if current selection is invalid
-      if Select2?
+      if jQuery.fn.select2?
         predicate_select.select2('val', previous_val)
 
     # Attempts to find a predicate translation for the specific column type,
@@ -274,7 +274,7 @@
       # Hide all query inputs
       inputs.hide()
 
-      if Select2?
+      if jQuery.fn.select2?
         # Find newly created input and setup Select2
         multi_query = @element.find('#' + multi_id)
 
@@ -322,7 +322,7 @@
       target.before content.replace(regexp, new_id)
       prev_container = target.prev()
 
-      if Select2?
+      if jQuery.fn.select2?
         @init_select2(prev_container)
 
       if $.ransack.button_group_select?
@@ -346,7 +346,7 @@
       target.before content.replace(regexp, new_id)
       prev_container = target.prev()
 
-      if Select2?
+      if jQuery.fn.select2?
         @init_select2(prev_container)
 
       if $.ransack.button_group_select?

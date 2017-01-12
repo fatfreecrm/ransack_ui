@@ -42,5 +42,5 @@ Ransack.predicate_inputs = {}
 Ransack.option_predicates = ['eq', 'eq_any', 'not_eq', 'not_eq_all', 'null', 'not_null']
 
 # Use a tags input for 'in' if Select2 is available
-if Select2?
+if jQuery.fn.select2?
   Ransack.predicate_inputs.in = 'tags'
