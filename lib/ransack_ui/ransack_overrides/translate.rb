@@ -15,7 +15,7 @@ module Ransack
       attribute_names = attributes_str.split(/_and_|_or_/)
       combinator = attributes_str.match(/_and_/) ? :and : :or
       defaults = base_ancestors.map do |klass|
-        :"ransack.attributes.#{klass.model_name.demodulize.downcase.underscore}.#{original_name}"
+        :"ransack.attributes.#{klass.model.name.demodulize.downcase.underscore}.#{original_name}"
       end
 
       translated_names = attribute_names.map do |attr|
