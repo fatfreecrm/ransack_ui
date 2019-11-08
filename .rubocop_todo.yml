@@ -28,12 +28,6 @@ Lint/AssignmentInCondition:
   Exclude:
     - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
 
-# Offense count: 2
-# Cop supports --auto-correct.
-Lint/SendWithMixinArgument:
-  Exclude:
-    - 'lib/ransack_ui/rails/engine.rb'
-
 # Offense count: 5
 # Cop supports --auto-correct.
 # Configuration parameters: AllowUnusedKeywordArguments, IgnoreEmptyMethods.
