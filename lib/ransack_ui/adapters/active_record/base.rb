@@ -2,7 +2,6 @@ module RansackUI
   module Adapters
     module ActiveRecord
       module Base
-
         def self.extended(base)
           base.class_eval do
             class_attribute :_ransackable_associations

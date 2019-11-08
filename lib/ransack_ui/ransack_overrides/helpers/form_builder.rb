@@ -8,6 +8,7 @@ module Ransack
 
       def attribute_select(options = {}, html_options = {})
         raise ArgumentError, 'attribute_select must be called inside a search FormBuilder!' unless object.respond_to?(:context)
+
         options[:include_blank] = true unless options.key?(:include_blank)
 
         # Set default associations set on model with 'has_ransackable_associations'
@@ -32,6 +33,7 @@ module Ransack
 
       def sort_select(options = {}, html_options = {})
         raise ArgumentError, 'sort_select must be called inside a search FormBuilder!' unless object.respond_to?(:context)
+
         options[:include_blank] = true unless options.key?(:include_blank)
         bases = [''] + association_array(options[:associations])
         if bases.size > 1
@@ -97,7 +99,6 @@ module Ransack
 
         labels
       end
-
 
       def predicate_keys(options)
         keys = options[:compounds] ? Predicate.names : Predicate.names.reject { |k| k.match(/_(any|all)$/) }
@@ -204,7 +205,6 @@ module Ransack
       rescue UntraversableAssociationError
         nil
       end
-
 
       private
 

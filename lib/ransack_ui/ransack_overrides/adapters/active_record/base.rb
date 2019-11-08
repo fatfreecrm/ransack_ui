@@ -40,7 +40,6 @@ module Ransack
             all_associations
           end
         end
-
       end
     end
   end
