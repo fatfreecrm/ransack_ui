@@ -126,11 +126,6 @@ Lint/UnusedMethodArgument:
     - 'lib/ransack_ui/ransack_overrides/adapters/active_record/base.rb'
     - 'lib/ransack_ui/view_helpers.rb'
 
-# Offense count: 1
-Lint/UselessAssignment:
-  Exclude:
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-
 # Offense count: 6
 Metrics/AbcSize:
   Max: 53

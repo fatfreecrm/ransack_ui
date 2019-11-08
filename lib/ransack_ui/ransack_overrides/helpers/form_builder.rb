@@ -201,7 +201,7 @@ module Ransack
             html_options
           ]
         end
-      rescue UntraversableAssociationError => e
+      rescue UntraversableAssociationError
         nil
       end
 
