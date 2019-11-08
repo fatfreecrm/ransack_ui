@@ -202,14 +202,6 @@ Style/BlockDelimiters:
   Exclude:
     - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
 
-# Offense count: 4
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: braces, no_braces, context_dependent
-Style/BracesAroundHashParameters:
-  Exclude:
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-
 # Offense count: 2
 # Cop supports --auto-correct.
 Style/ColonMethodCall:
