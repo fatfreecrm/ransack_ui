@@ -176,9 +176,9 @@ module Ransack
           # Set column options if detected from inclusion validator
           if column_select_options[column]
             # Format options as an array of hashes with id and text columns, for Select2
-            html_options[:'data-select-options'] = column_select_options[column].map { |id, text|
+            html_options[:'data-select-options'] = column_select_options[column].map do |id, text|
               { id: id, text: text }
-            }.to_json
+            end.to_json
           end
 
           foreign_klass = attribute_data[:foreign_klass]
