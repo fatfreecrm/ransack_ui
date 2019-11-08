@@ -127,14 +127,6 @@ Style/FrozenStringLiteralComment:
 
 # Offense count: 1
 # Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: literals, strict
-Style/MutableConstant:
-  Exclude:
-    - 'lib/ransack_ui/version.rb'
-
-# Offense count: 1
-# Cop supports --auto-correct.
 # Configuration parameters: AllowAsExpressionSeparator.
 Style/Semicolon:
   Exclude:
