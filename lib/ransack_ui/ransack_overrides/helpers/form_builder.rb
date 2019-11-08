@@ -102,7 +102,7 @@ module Ransack
 
       def predicate_keys(options)
         keys = options[:compounds] ? Predicate.names : Predicate.names.reject { |k| k.match(/_(any|all)$/) }
-        if only = options[:only]
+        if (only = options[:only])
           if only.respond_to? :call
             keys = keys.select { |k| only.call(k) }
           else
@@ -132,7 +132,7 @@ module Ransack
 
       def attribute_collection_for_bases(bases)
         bases.map do |base|
-          if collection = attribute_collection_for_base(base)
+          if (collection = attribute_collection_for_base(base))
             [
               Translate.association(base, context: object.context),
               collection

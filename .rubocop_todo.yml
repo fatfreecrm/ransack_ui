@@ -22,12 +22,6 @@ Layout/DotPosition:
   Exclude:
     - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
 
-# Offense count: 2
-# Configuration parameters: AllowSafeAssignment.
-Lint/AssignmentInCondition:
-  Exclude:
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-
 # Offense count: 5
 # Cop supports --auto-correct.
 # Configuration parameters: AllowUnusedKeywordArguments, IgnoreEmptyMethods.
