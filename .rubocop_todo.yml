@@ -133,14 +133,6 @@ Style/MutableConstant:
   Exclude:
     - 'lib/ransack_ui/version.rb'
 
-# Offense count: 3
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, MinBodyLength.
-# SupportedStyles: skip_modifier_ifs, always
-Style/Next:
-  Exclude:
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-
 # Offense count: 1
 # Cop supports --auto-correct.
 # Configuration parameters: PreferredDelimiters.

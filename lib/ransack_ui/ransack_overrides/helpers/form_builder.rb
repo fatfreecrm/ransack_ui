@@ -69,27 +69,27 @@ module Ransack
             condition.values.each do |value|
               # If value is present, and the attribute is an association,
               # load the selected record and include the record name as a data attribute
-              if value.value.present?
-                condition_attributes = condition.attributes
-                if condition_attributes.any?
-                  attribute = condition_attributes.first.name
-                  klass_name = foreign_klass_for_attribute(attribute)
+              next unless value.value.present?
 
-                  if klass_name
-                    klass = klass_name.constantize
+              condition_attributes = condition.attributes
+              next unless condition_attributes.any?
 
-                    value_object = klass.find_by_id(value.value)
-                    if value_object
-                      labels[attribute] ||= {}
+              attribute = condition_attributes.first.name
+              klass_name = foreign_klass_for_attribute(attribute)
 
-                      if value_object.respond_to? :full_name
-                        labels[attribute][value.value] = value_object.full_name
-                      elsif value_object.respond_to? :name
-                        labels[attribute][value.value] = value_object.name
-                      end
-                    end
-                  end
-                end
+              next unless klass_name
+
+              klass = klass_name.constantize
+
+              value_object = klass.find_by_id(value.value)
+              next unless value_object
+
+              labels[attribute] ||= {}
+
+              if value_object.respond_to? :full_name
+                labels[attribute][value.value] = value_object.full_name
+              elsif value_object.respond_to? :name
+                labels[attribute][value.value] = value_object.name
               end
             end
           end
@@ -130,12 +130,12 @@ module Ransack
 
       def attribute_collection_for_bases(bases)
         bases.map do |base|
-          if (collection = attribute_collection_for_base(base))
-            [
-              Translate.association(base, context: object.context),
-              collection
-            ]
-          end
+          next unless (collection = attribute_collection_for_base(base))
+
+          [
+            Translate.association(base, context: object.context),
+            collection
+          ]
         end.compact
       end
 
@@ -145,14 +145,14 @@ module Ransack
 
         # Detect any inclusion validators to build list of options for a column
         column_select_options = klass.validators.each_with_object({}) do |v, hash|
-          if v.is_a? ActiveModel::Validations::InclusionValidator
-            v.attributes.each do |a|
-              # Try to translate options from activerecord.attribute_options.<model>.<attribute>
-              inclusions = v.send(:delimiter)
-              inclusions = inclusions.call if inclusions.respond_to?(:call) # handle lambda
-              hash[a.to_s] = inclusions.each_with_object({}) do |o, options|
-                options[o.to_s] = I18n.translate("activerecord.attribute_options.#{klass.to_s.downcase}.#{a}.#{o}", default: o.to_s.titleize)
-              end
+          next unless v.is_a? ActiveModel::Validations::InclusionValidator
+
+          v.attributes.each do |a|
+            # Try to translate options from activerecord.attribute_options.<model>.<attribute>
+            inclusions = v.send(:delimiter)
+            inclusions = inclusions.call if inclusions.respond_to?(:call) # handle lambda
+            hash[a.to_s] = inclusions.each_with_object({}) do |o, options|
+              options[o.to_s] = I18n.translate("activerecord.attribute_options.#{klass.to_s.downcase}.#{a}.#{o}", default: o.to_s.titleize)
             end
           end
         end
