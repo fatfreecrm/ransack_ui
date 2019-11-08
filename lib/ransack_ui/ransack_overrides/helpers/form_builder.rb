@@ -12,9 +12,7 @@ module Ransack
         options[:include_blank] = true unless options.key?(:include_blank)
 
         # Set default associations set on model with 'has_ransackable_associations'
-        if options[:associations].nil?
-          options[:associations] = object.context.klass.ransackable_associations
-        end
+        options[:associations] = object.context.klass.ransackable_associations if options[:associations].nil?
 
         bases = [''] + association_array(options[:associations])
         if bases.size > 1
@@ -159,9 +157,7 @@ module Ransack
           end
         end
 
-        if klass.respond_to?(:ransack_column_select_options)
-          column_select_options.merge!(klass.ransack_column_select_options)
-        end
+        column_select_options.merge!(klass.ransack_column_select_options) if klass.respond_to?(:ransack_column_select_options)
 
         searchable_attributes_for_base(base).map do |attribute_data|
           column = attribute_data[:column]
@@ -251,9 +247,7 @@ module Ransack
 
         bases.each do |base|
           searchable_attributes_for_base(base).each do |attribute_data|
-            if attribute == attribute_data[:attribute]
-              return attribute_data[:foreign_klass]
-            end
+            return attribute_data[:foreign_klass] if attribute == attribute_data[:attribute]
           end
         end
       end
