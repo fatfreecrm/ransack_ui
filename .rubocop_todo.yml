@@ -267,16 +267,6 @@ Style/ExpandPathArguments:
 Style/FrozenStringLiteralComment:
   Enabled: false
 
-# Offense count: 21
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, UseHashRocketsWithSymbolValues, PreferHashRocketsForNonAlnumEndingSymbols.
-# SupportedStyles: ruby19, hash_rockets, no_mixed_keys, ruby19_no_mixed_keys
-Style/HashSyntax:
-  Exclude:
-    - 'Gemfile'
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-    - 'lib/ransack_ui/view_helpers.rb'
-
 # Offense count: 3
 # Cop supports --auto-correct.
 Style/IfUnlessModifier:
