@@ -7,7 +7,7 @@ module Ransack
         # Return array of attributes with [name, type]
         # (Default to :string type for ransackers)
         def ransackable_attributes(auth_object = nil)
-          columns.map{|c| [c.name, c.type] } +
+          columns.map {|c| [c.name, c.type] } +
           _ransackers.map {|k, v| [k, v.type || :string] }
         end
 
