@@ -10,7 +10,7 @@ module RansackUI
     #
     def load_ransack_search(klass = nil)
       klass ||= controller_path.classify.constantize
-      @ransack_search = klass.search(params[:q])
+      @ransack_search = klass.ransack(params[:q])
       @ransack_search.build_grouping if @ransack_search.groupings.empty?
       @ransack_search
     end
