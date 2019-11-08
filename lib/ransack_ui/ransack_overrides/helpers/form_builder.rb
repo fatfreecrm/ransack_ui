@@ -45,7 +45,7 @@ module Ransack
           )
         else
           # searchable_attributes now returns [c, type]
-          collection = object.context.searchable_attributes(bases.first).map do |c, type|
+          collection = object.context.searchable_attributes(bases.first).map do |c, _type|
             [
               attr_from_base_and_column(bases.first, c),
               Translate.attribute(attr_from_base_and_column(bases.first, c), context: object.context)
