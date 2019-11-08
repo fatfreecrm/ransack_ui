@@ -12,7 +12,7 @@ module Ransack
         end
 
         def self.extended(base)
-          alias :search :ransack unless base.method_defined? :search
+          alias_method :search, :ransack unless base.method_defined? :search
           base.class_eval do
             class_attribute :_ransackers
             class_attribute :_ransackable_associations
