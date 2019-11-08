@@ -83,15 +83,6 @@ Layout/MultilineOperationIndentation:
     - 'lib/ransack_ui/ransack_overrides/adapters/active_record/base.rb'
     - 'lib/ransack_ui/ransack_overrides/nodes/attribute.rb'
 
-# Offense count: 10
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, EnforcedStyleForEmptyBraces.
-# SupportedStyles: space, no_space, compact
-# SupportedStylesForEmptyBraces: space, no_space
-Layout/SpaceInsideHashLiteralBraces:
-  Exclude:
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-
 # Offense count: 2
 # Configuration parameters: AllowSafeAssignment.
 Lint/AssignmentInCondition:
