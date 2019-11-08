@@ -100,16 +100,16 @@ module Ransack
 
 
       def predicate_keys(options)
-        keys = options[:compounds] ? Predicate.names : Predicate.names.reject {|k| k.match(/_(any|all)$/)}
+        keys = options[:compounds] ? Predicate.names : Predicate.names.reject { |k| k.match(/_(any|all)$/) }
         if only = options[:only]
           if only.respond_to? :call
-            keys = keys.select {|k| only.call(k)}
+            keys = keys.select { |k| only.call(k) }
           else
             only = Array.wrap(only).map(&:to_s)
             # Create compounds hash, e.g. {"eq" => ["eq", "eq_any", "eq_all"], "blank" => ["blank"]}
             key_groups = keys.inject(Hash.new([])) { |h, k| h[k.sub(/_(any|all)$/, '')] += [k]; h }
             # Order compounds hash by 'only' keys
-            keys = only.map {|k| key_groups[k] }.flatten.compact
+            keys = only.map { |k| key_groups[k] }.flatten.compact
           end
         end
         keys
@@ -124,7 +124,7 @@ module Ransack
         # then replace the default predicate with the first in the ordered list
         @object.predicate_name = keys.first if @object.default?
         @template.collection_select(
-          @object_name, :p, keys.map {|k| [k, Translate.predicate(k)]}, :first, :last,
+          @object_name, :p, keys.map { |k| [k, Translate.predicate(k)] }, :first, :last,
           objectify_options(options), @default_options.merge(html_options)
         )
       end
@@ -175,7 +175,7 @@ module Ransack
           # Set column options if detected from inclusion validator
           if column_select_options[column]
             # Format options as an array of hashes with id and text columns, for Select2
-            html_options[:'data-select-options'] = column_select_options[column].map {|id, text|
+            html_options[:'data-select-options'] = column_select_options[column].map { |id, text|
               {:id => id, :text => text}
             }.to_json
           end
@@ -215,7 +215,7 @@ module Ransack
         self.class.cached_searchable_attributes_for_base[cache_key] ||= object.context.searchable_attributes(base).map do |column, type|
           klass = object.context.traverse(base)
           foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
-                           each_with_object({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
+                           each_with_object({}) { |r, h| h[r.foreign_key.to_sym] = r.class_name }
 
           # Don't show 'id' column for base model
           next nil if base.blank? && column == 'id'
