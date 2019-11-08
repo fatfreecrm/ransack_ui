@@ -107,7 +107,7 @@ module Ransack
           else
             only = Array.wrap(only).map(&:to_s)
             # Create compounds hash, e.g. {"eq" => ["eq", "eq_any", "eq_all"], "blank" => ["blank"]}
-            key_groups = keys.inject(Hash.new([])){ |h,k| h[k.sub(/_(any|all)$/, '')] += [k]; h }
+            key_groups = keys.inject(Hash.new([])){ |h, k| h[k.sub(/_(any|all)$/, '')] += [k]; h }
             # Order compounds hash by 'only' keys
             keys = only.map {|k| key_groups[k] }.flatten.compact
           end
