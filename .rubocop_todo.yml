@@ -14,14 +14,6 @@ Gemspec/OrderedDependencies:
   Exclude:
     - 'ransack_ui.gemspec'
 
-# Offense count: 1
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: leading, trailing
-Layout/DotPosition:
-  Exclude:
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-
 # Offense count: 5
 # Cop supports --auto-correct.
 # Configuration parameters: AllowUnusedKeywordArguments, IgnoreEmptyMethods.

@@ -214,8 +214,8 @@ module Ransack
 
         self.class.cached_searchable_attributes_for_base[cache_key] ||= object.context.searchable_attributes(base).map do |column, type|
           klass = object.context.traverse(base)
-          foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
-                         each_with_object({}) { |r, h| h[r.foreign_key.to_sym] = r.class_name }
+          foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?)
+                              .each_with_object({}) { |r, h| h[r.foreign_key.to_sym] = r.class_name }
 
           # Don't show 'id' column for base model
           next nil if base.blank? && column == 'id'
