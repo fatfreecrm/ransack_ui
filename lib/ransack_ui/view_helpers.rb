@@ -7,7 +7,7 @@ module RansackUI
     def link_to_add_fields(name, f, type, options)
       new_object = f.object.send "build_#{type}"
       fields = f.send("#{type}_fields", new_object, child_index: "new_#{type}") do |builder|
-        render "ransack_ui/#{type.to_s}_fields", f: builder, options: options
+        render "ransack_ui/#{type}_fields", f: builder, options: options
       end
 
       if options[:theme].to_s == 'bootstrap'
