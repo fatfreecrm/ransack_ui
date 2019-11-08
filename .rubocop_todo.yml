@@ -23,25 +23,6 @@ Layout/DotPosition:
     - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
 
 # Offense count: 2
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, IndentationWidth.
-# SupportedStyles: aligned, indented, indented_relative_to_receiver
-Layout/MultilineMethodCallIndentation:
-  Exclude:
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-    - 'lib/ransack_ui/ransack_overrides/nodes/attribute.rb'
-
-# Offense count: 3
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, IndentationWidth.
-# SupportedStyles: aligned, indented
-Layout/MultilineOperationIndentation:
-  Exclude:
-    - 'lib/ransack_ui/adapters/active_record/base.rb'
-    - 'lib/ransack_ui/ransack_overrides/adapters/active_record/base.rb'
-    - 'lib/ransack_ui/ransack_overrides/nodes/attribute.rb'
-
-# Offense count: 2
 # Configuration parameters: AllowSafeAssignment.
 Lint/AssignmentInCondition:
   Exclude:
