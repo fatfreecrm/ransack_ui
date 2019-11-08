@@ -7,7 +7,7 @@ module Ransack
       self.cached_searchable_attributes_for_base = {}
 
       def attribute_select(options = {}, html_options = {})
-        raise ArgumentError, "attribute_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
+        raise ArgumentError, 'attribute_select must be called inside a search FormBuilder!' unless object.respond_to?(:context)
         options[:include_blank] = true unless options.has_key?(:include_blank)
 
         # Set default associations set on model with 'has_ransackable_associations'
@@ -31,7 +31,7 @@ module Ransack
       end
 
       def sort_select(options = {}, html_options = {})
-        raise ArgumentError, "sort_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
+        raise ArgumentError, 'sort_select must be called inside a search FormBuilder!' unless object.respond_to?(:context)
         options[:include_blank] = true unless options.has_key?(:include_blank)
         bases = [''] + association_array(options[:associations])
         if bases.size > 1

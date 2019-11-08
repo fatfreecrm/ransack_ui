@@ -325,20 +325,6 @@ Style/SpecialGlobalVars:
   Exclude:
     - 'ransack_ui.gemspec'
 
-# Offense count: 26
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle, ConsistentQuotesInMultiline.
-# SupportedStyles: single_quotes, double_quotes
-Style/StringLiterals:
-  Exclude:
-    - 'Rakefile'
-    - 'lib/ransack_ui.rb'
-    - 'lib/ransack_ui/rails/engine.rb'
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-    - 'lib/ransack_ui/version.rb'
-    - 'lib/ransack_ui/view_helpers.rb'
-    - 'ransack_ui.gemspec'
-
 # Offense count: 43
 # Cop supports --auto-correct.
 # Configuration parameters: AutoCorrect, AllowHeredoc, AllowURI, URISchemes, IgnoreCopDirectives, IgnoredPatterns.
