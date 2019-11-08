@@ -135,13 +135,6 @@ Style/MutableConstant:
 
 # Offense count: 1
 # Cop supports --auto-correct.
-# Configuration parameters: PreferredDelimiters.
-Style/PercentLiteralDelimiters:
-  Exclude:
-    - 'lib/ransack_ui/rails/engine.rb'
-
-# Offense count: 1
-# Cop supports --auto-correct.
 # Configuration parameters: AllowAsExpressionSeparator.
 Style/Semicolon:
   Exclude:
