@@ -296,14 +296,6 @@ Style/PercentLiteralDelimiters:
   Exclude:
     - 'lib/ransack_ui/rails/engine.rb'
 
-# Offense count: 2
-# Cop supports --auto-correct.
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: short, verbose
-Style/PreferredHashMethods:
-  Exclude:
-    - 'lib/ransack_ui/ransack_overrides/helpers/form_builder.rb'
-
 # Offense count: 1
 # Cop supports --auto-correct.
 # Configuration parameters: AllowAsExpressionSeparator.
