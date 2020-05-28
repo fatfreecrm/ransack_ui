@@ -50,8 +50,9 @@ Now you can start playing with the results.
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
 
-## Credits / Acknowledgements
+## Acknowledgements
 
-* Nathan Broadbent (ndbroadbent) - creator of ransack_ui code
-* Ernie Miller (ernie) for creating ransack - https://github.com/ernie/ransack
-* Steve Kenworthy (steveyken) - for tiny tweaks
+* Ernie Miller (@ernie) - Creator of ransack (https://github.com/ernie/ransack)
+* Nathan Broadbent (@ndbroadbent)
+* Steve Kenworthy (@steveyken)
+* Daniel O'Connor (@CloCkWeRX)
