@@ -7,13 +7,12 @@ module Ransack
       self.cached_searchable_attributes_for_base = {}
 
       def attribute_select(options = {}, html_options = {})
-        raise ArgumentError, "attribute_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
-        options[:include_blank] = true unless options.has_key?(:include_blank)
+        raise ArgumentError, 'attribute_select must be called inside a search FormBuilder!' unless object.respond_to?(:context)
+
+        options[:include_blank] = true unless options.key?(:include_blank)
 
         # Set default associations set on model with 'has_ransackable_associations'
-        if options[:associations].nil?
-          options[:associations] = object.context.klass.ransackable_associations
-        end
+        options[:associations] = object.context.klass.ransackable_associations if options[:associations].nil?
 
         bases = [''] + association_array(options[:associations])
         if bases.size > 1
@@ -31,32 +30,33 @@ module Ransack
       end
 
       def sort_select(options = {}, html_options = {})
-        raise ArgumentError, "sort_select must be called inside a search FormBuilder!" unless object.respond_to?(:context)
-        options[:include_blank] = true unless options.has_key?(:include_blank)
+        raise ArgumentError, 'sort_select must be called inside a search FormBuilder!' unless object.respond_to?(:context)
+
+        options[:include_blank] = true unless options.key?(:include_blank)
         bases = [''] + association_array(options[:associations])
         if bases.size > 1
           @template.select(
             @object_name, :name,
             @template.grouped_options_for_select(attribute_collection_for_bases(bases), object.name),
-            objectify_options(options), @default_options.merge({:class => 'ransack_sort'}).merge(html_options)
+            objectify_options(options), @default_options.merge(class: 'ransack_sort').merge(html_options)
           ) + @template.collection_select(
             @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
-            objectify_options(options.except(:include_blank)), @default_options.merge({:class => 'ransack_sort_order'}).merge(html_options)
+            objectify_options(options.except(:include_blank)), @default_options.merge(class: 'ransack_sort_order').merge(html_options)
           )
         else
           # searchable_attributes now returns [c, type]
-          collection = object.context.searchable_attributes(bases.first).map do |c, type|
+          collection = object.context.searchable_attributes(bases.first).map do |c, _type|
             [
               attr_from_base_and_column(bases.first, c),
-              Translate.attribute(attr_from_base_and_column(bases.first, c), :context => object.context)
+              Translate.attribute(attr_from_base_and_column(bases.first, c), context: object.context)
             ]
           end
           @template.collection_select(
             @object_name, :name, collection, :first, :last,
-            objectify_options(options), @default_options.merge({:class => 'ransack_sort'}).merge(html_options)
+            objectify_options(options), @default_options.merge(class: 'ransack_sort').merge(html_options)
           ) + @template.collection_select(
             @object_name, :dir, [['asc', object.translate('asc')], ['desc', object.translate('desc')]], :first, :last,
-            objectify_options(options.except(:include_blank)), @default_options.merge({:class => 'ransack_sort_order'}).merge(html_options)
+            objectify_options(options.except(:include_blank)), @default_options.merge(class: 'ransack_sort_order').merge(html_options)
           )
         end
       end
@@ -69,27 +69,27 @@ module Ransack
             condition.values.each do |value|
               # If value is present, and the attribute is an association,
               # load the selected record and include the record name as a data attribute
-              if value.value.present?
-                condition_attributes = condition.attributes
-                if condition_attributes.any?
-                  attribute = condition_attributes.first.name
-                  klass_name = foreign_klass_for_attribute(attribute)
+              next unless value.value.present?
 
-                  if klass_name
-                    klass = klass_name.constantize
+              condition_attributes = condition.attributes
+              next unless condition_attributes.any?
 
-                    value_object = klass.find_by_id(value.value)
-                    if value_object
-                      labels[attribute] ||= {}
+              attribute = condition_attributes.first.name
+              klass_name = foreign_klass_for_attribute(attribute)
 
-                      if value_object.respond_to? :full_name
-                        labels[attribute][value.value] = value_object.full_name
-                      elsif value_object.respond_to? :name
-                        labels[attribute][value.value] = value_object.name
-                      end
-                    end
-                  end
-                end
+              next unless klass_name
+
+              klass = klass_name.constantize
+
+              value_object = klass.find_by_id(value.value)
+              next unless value_object
+
+              labels[attribute] ||= {}
+
+              if value_object.respond_to? :full_name
+                labels[attribute][value.value] = value_object.full_name
+              elsif value_object.respond_to? :name
+                labels[attribute][value.value] = value_object.name
               end
             end
           end
@@ -98,18 +98,17 @@ module Ransack
         labels
       end
 
-
       def predicate_keys(options)
-        keys = options[:compounds] ? Predicate.names : Predicate.names.reject {|k| k.match(/_(any|all)$/)}
-        if only = options[:only]
+        keys = options[:compounds] ? Predicate.names : Predicate.names.reject { |k| k.match(/_(any|all)$/) }
+        if (only = options[:only])
           if only.respond_to? :call
-            keys = keys.select {|k| only.call(k)}
+            keys = keys.select { |k| only.call(k) }
           else
             only = Array.wrap(only).map(&:to_s)
             # Create compounds hash, e.g. {"eq" => ["eq", "eq_any", "eq_all"], "blank" => ["blank"]}
-            key_groups = keys.inject(Hash.new([])){ |h,k| h[k.sub(/_(any|all)$/, '')] += [k]; h }
+            key_groups = keys.inject(Hash.new([])) { |h, k| h[k.sub(/_(any|all)$/, '')] += [k]; h }
             # Order compounds hash by 'only' keys
-            keys = only.map {|k| key_groups[k] }.flatten.compact
+            keys = only.map { |k| key_groups[k] }.flatten.compact
           end
         end
         keys
@@ -124,19 +123,19 @@ module Ransack
         # then replace the default predicate with the first in the ordered list
         @object.predicate_name = keys.first if @object.default?
         @template.collection_select(
-          @object_name, :p, keys.map {|k| [k, Translate.predicate(k)]}, :first, :last,
+          @object_name, :p, keys.map { |k| [k, Translate.predicate(k)] }, :first, :last,
           objectify_options(options), @default_options.merge(html_options)
         )
       end
 
       def attribute_collection_for_bases(bases)
         bases.map do |base|
-          if collection = attribute_collection_for_base(base)
-            [
-              Translate.association(base, :context => object.context),
-              collection
-            ]
-          end
+          next unless (collection = attribute_collection_for_base(base))
+
+          [
+            Translate.association(base, context: object.context),
+            collection
+          ]
         end.compact
       end
 
@@ -146,21 +145,19 @@ module Ransack
 
         # Detect any inclusion validators to build list of options for a column
         column_select_options = klass.validators.each_with_object({}) do |v, hash|
-          if v.is_a? ActiveModel::Validations::InclusionValidator
-            v.attributes.each do |a|
-              # Try to translate options from activerecord.attribute_options.<model>.<attribute>
-              inclusions = v.send(:delimiter)
-              inclusions = inclusions.call if inclusions.respond_to?(:call) # handle lambda
-              hash[a.to_s] = inclusions.each_with_object({}) do |o, options|
-                options[o.to_s] = I18n.translate("activerecord.attribute_options.#{klass.to_s.downcase}.#{a}.#{o}", :default => o.to_s.titleize)
-              end
+          next unless v.is_a? ActiveModel::Validations::InclusionValidator
+
+          v.attributes.each do |a|
+            # Try to translate options from activerecord.attribute_options.<model>.<attribute>
+            inclusions = v.send(:delimiter)
+            inclusions = inclusions.call if inclusions.respond_to?(:call) # handle lambda
+            hash[a.to_s] = inclusions.each_with_object({}) do |o, options|
+              options[o.to_s] = I18n.translate("activerecord.attribute_options.#{klass.to_s.downcase}.#{a}.#{o}", default: o.to_s.titleize)
             end
           end
         end
 
-        if klass.respond_to?(:ransack_column_select_options)
-          column_select_options.merge!(klass.ransack_column_select_options)
-        end
+        column_select_options.merge!(klass.ransack_column_select_options) if klass.respond_to?(:ransack_column_select_options)
 
         searchable_attributes_for_base(base).map do |attribute_data|
           column = attribute_data[:column]
@@ -175,17 +172,17 @@ module Ransack
           # Set column options if detected from inclusion validator
           if column_select_options[column]
             # Format options as an array of hashes with id and text columns, for Select2
-            html_options[:'data-select-options'] = column_select_options[column].map {|id, text|
-              {:id => id, :text => text}
-            }.to_json
+            html_options[:'data-select-options'] = column_select_options[column].map do |id, text|
+              { id: id, text: text }
+            end.to_json
           end
 
           foreign_klass = attribute_data[:foreign_klass]
 
           if foreign_klass
             # If field is a foreign key, set up 'data-ajax-*' attributes for auto-complete
-            controller = ActiveSupport::Inflector::tableize(foreign_klass.to_s)
-            html_options[:'data-ajax-entity'] = I18n.translate(controller, :default => controller)
+            controller = ActiveSupport::Inflector.tableize(foreign_klass.to_s)
+            html_options[:'data-ajax-entity'] = I18n.translate(controller, default: controller)
             if ajax_options[:url]
               html_options[:'data-ajax-url'] = ajax_options[:url].sub(':controller', controller)
             else
@@ -201,10 +198,9 @@ module Ransack
             html_options
           ]
         end
-      rescue UntraversableAssociationError => e
+      rescue UntraversableAssociationError
         nil
       end
-
 
       private
 
@@ -214,22 +210,22 @@ module Ransack
 
         self.class.cached_searchable_attributes_for_base[cache_key] ||= object.context.searchable_attributes(base).map do |column, type|
           klass = object.context.traverse(base)
-          foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?).
-                           each_with_object({}) {|r, h| h[r.foreign_key.to_sym] = r.class_name }
+          foreign_keys = klass.reflect_on_all_associations.select(&:belongs_to?)
+                              .each_with_object({}) { |r, h| h[r.foreign_key.to_sym] = r.class_name }
 
           # Don't show 'id' column for base model
           next nil if base.blank? && column == 'id'
 
           attribute = attr_from_base_and_column(base, column)
-          attribute_label = Translate.attribute(attribute, :context => object.context)
+          attribute_label = Translate.attribute(attribute, context: object.context)
 
           # Set model name as label for 'id' column on that model's table.
           if column == 'id'
             foreign_klass = object.context.traverse(base).model_name
             # Check that model can autocomplete. If not, skip this id column.
-            next nil unless ActiveSupport::Inflector::constantize(foreign_klass.to_s)._ransack_can_autocomplete
+            next nil unless ActiveSupport::Inflector.constantize(foreign_klass.to_s)._ransack_can_autocomplete
 
-            attribute_label = I18n.translate(foreign_klass, :default => foreign_klass)
+            attribute_label = I18n.translate(foreign_klass, default: foreign_klass)
           else
             foreign_klass = foreign_keys[column.to_sym]
           end
@@ -251,9 +247,7 @@ module Ransack
 
         bases.each do |base|
           searchable_attributes_for_base(base).each do |attribute_data|
-            if attribute == attribute_data[:attribute]
-              return attribute_data[:foreign_klass]
-            end
+            return attribute_data[:foreign_klass] if attribute == attribute_data[:attribute]
           end
         end
       end

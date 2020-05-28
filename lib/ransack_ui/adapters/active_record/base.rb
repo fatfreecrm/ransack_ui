@@ -2,7 +2,6 @@ module RansackUI
   module Adapters
     module ActiveRecord
       module Base
-
         def self.extended(base)
           base.class_eval do
             class_attribute :_ransackable_associations
@@ -23,12 +22,12 @@ module RansackUI
         # Return array of attributes with [name, type]
         # (Default to :string type for ransackers)
         def ransackable_attributes(auth_object = nil)
-          columns.map{|c| [c.name, c.type] } +
-          _ransackers.keys.map {|k,v| [k, v.type || :string] }
+          columns.map { |c| [c.name, c.type] } +
+            _ransackers.keys.map { |k, v| [k, v.type || :string] }
         end
 
         def ransackable_associations(auth_object = nil)
-          all_associations = reflect_on_all_associations.map {|a| a.name.to_s}
+          all_associations = reflect_on_all_associations.map { |a| a.name.to_s }
           if self._ransackable_associations.any?
             # Return intersection of all associations, and associations defined on the model
             all_associations & self._ransackable_associations
