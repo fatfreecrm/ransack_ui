@@ -11,11 +11,11 @@ module RansackUI
       end
 
       if options[:theme].to_s == 'bootstrap'
-        link_to nil, :class => 'add_fields btn btn-small btn-primary', 'data-field-type' => type, 'data-content' => fields.to_s do
+        link_to nil, :class => 'add_fields btn btn-small btn-primary', 'data-field-type' => type, 'data-content' => "#{fields}" do
           "<i class=\"icon-plus icon-white\"></i><span>#{name}</span>".html_safe
         end
       else
-        link_to name, nil, :class => 'add_fields', 'data-field-type' => type, 'data-content' => fields.to_s
+        link_to name, nil, :class => 'add_fields', 'data-field-type' => type, 'data-content' => "#{fields}"
       end
     end
 
