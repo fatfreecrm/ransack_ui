@@ -180,16 +180,16 @@ module Ransack
           foreign_klass = attribute_data[:foreign_klass]
 
           if foreign_klass
-            # If field is a foreign key, set up 'data-ajax-*' attributes for auto-complete
+            # If field is a foreign key, set up 'data-ajax--*' attributes for auto-complete
             controller = ActiveSupport::Inflector.tableize(foreign_klass.to_s)
-            html_options[:'data-ajax-entity'] = I18n.translate(controller, default: controller)
+            html_options[:'data-ajax--entity'] = I18n.translate(controller, default: controller)
             if ajax_options[:url]
-              html_options[:'data-ajax-url'] = ajax_options[:url].sub(':controller', controller)
+              html_options[:'data-ajax--url'] = ajax_options[:url].sub(':controller', controller)
             else
-              html_options[:'data-ajax-url'] = "/#{controller}.json"
+              html_options[:'data-ajax--url'] = "/#{controller}.json"
             end
-            html_options[:'data-ajax-type'] = ajax_options[:type] || 'GET'
-            html_options[:'data-ajax-key']  = ajax_options[:key]  || 'query'
+            html_options[:'data-ajax--type'] = ajax_options[:type] || 'GET'
+            html_options[:'data-ajax--key']  = ajax_options[:key]  || 'query'
           end
 
           [
