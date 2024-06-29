@@ -59,7 +59,7 @@
         @destroy_multi_input(multi_input, selected_attribute.val())
 
       # Handle association columns with AJAX autocomplete
-      if selected_attribute.data('ajax-url') and $.fn.select2?
+      if selected_attribute.data('ajax--url') and $.fn.select2?
         @set_option_predicates(base_id, available, column_type)
 
       # Handle columns with options detected from validates :inclusion
@@ -175,7 +175,7 @@
             query_input.css('display', '')
 
             # Handle association columns with AJAX autocomplete
-            if selected_attribute.data('ajax-url')
+            if selected_attribute.data('ajax--url')
               if query_select2.length
                 query_input.hide()
               else
@@ -193,7 +193,7 @@
         return if selected_attribute.data('select-options')
 
         # Don't show query input if ajax auto complete is present on selected attribute
-        unless p in ['eq', 'not_eq'] and selected_attribute.data('ajax-url')
+        unless p in ['eq', 'not_eq'] and selected_attribute.data('ajax--url')
           unless query_input.is(":visible")
             query_input.val('')
             #query_input.show()
@@ -293,7 +293,7 @@
         multi_query = @element.find('#' + multi_id)
 
         # Handle association columns with AJAX autocomplete
-        if selected_attribute.data('ajax-url')
+        if selected_attribute.data('ajax--url')
           # Set label to single association label, if anything was selected
           if query_select2.length && query_input.select2('data')
             query_input_data = query_input.select2('data')
@@ -322,17 +322,17 @@
       selected_attribute_val = selected_attribute.val()
       # Set up Select2 for query input
       query_input.select2
-        placeholder: "Search #{selected_attribute.data('ajax-entity')}"
+        placeholder: "Search #{selected_attribute.data('ajax--entity')}"
         minimumInputLength: 1
         allowClear: true
         multiple: multiple
         ajax:
-          url: selected_attribute.data('ajax-url')
+          url: selected_attribute.data('ajax--url')
           dataType: 'json'
-          type: selected_attribute.data('ajax-type')
+          type: selected_attribute.data('ajax--type')
           data: (params) ->
             obj = {}
-            obj[selected_attribute.data('ajax-key')] = params
+            obj[selected_attribute.data('ajax--key')] = params
             obj
           processResults: (data) ->
             {results: $.map(data, (text, id) -> {id: id, text: text}) }
