@@ -18,5 +18,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
 
   gem.add_dependency 'ransack_chronic', '>= 1.1.0'
-  gem.add_dependency 'ransack', '~> 2.0'
+  gem.add_dependency 'ransack', '< 4'
 end

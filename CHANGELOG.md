@@ -5,6 +5,7 @@
 ### 💥 Breaking Changes
 
 * Bumped minimum supported version of Select2 from V3 to V4 (Note: Select2 usage is entirely optional.)
+* Changed Ransack dependency requirement from ~> 2.0 to Ransack < 4
 
 ### 🚀 Features
 
