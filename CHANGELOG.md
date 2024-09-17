@@ -1,5 +1,11 @@
 # Change Log
 
+## v2.0.1
+
+### 🐛 Bug Fixes
+
+* Fixed 'table_name' issue in Ransack v3 preventing RansackUI from working with Rails 7.1+.
+
 ## v2.0.0
 
 ### 💥 Breaking Changes
