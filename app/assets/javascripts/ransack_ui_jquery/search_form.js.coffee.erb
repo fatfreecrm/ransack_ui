@@ -232,9 +232,6 @@
     # or returns the default label.
     # For example, 'lt' on an integer column will be translated to 'is less than',
     # while a date column will have it translated as 'is before'.
-    # This is mainly to avoid confusion when building conditions using Chronic strings.
-    # 'created_at is less than 2 weeks ago' is misleading, and
-    # 'created_at is before 2 weeks ago' is much easier to understand.
     alt_predicate_label_or_default: (p, type, default_label) ->
       return default_label unless Ransack?.alt_predicates_i18n?
       alt_labels = {}
