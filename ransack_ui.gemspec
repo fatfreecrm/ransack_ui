@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.email         = ['nathan.f77@gmail.com']
   gem.description   = 'Framework for building a search UI with Ransack'
   gem.summary       = 'UI Builder for Ransack'
-  gem.homepage      = 'https://github.com/ndbroadbent/ransack_ui'
+  gem.homepage      = 'https://github.com/fatfreecrm/ransack_ui'
   gem.license       = 'MIT'
 
   gem.files         = `git ls-files`.split($/)
