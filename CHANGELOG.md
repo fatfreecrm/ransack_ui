@@ -1,5 +1,9 @@
 # Change Log
 
+## v3.0.0
+
+* Removed direct dependeny on ransack-chronic, for Ransack 4 compatibility
+
 ## v2.0.1
 
 ### 🐛 Bug Fixes
